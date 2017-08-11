@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <variable
+            name="metadata"
+            type="se.materka.conflux.MetadataBindable" />
+    </data>
+
+    <RelativeLayout
+        android:id="@+id/test"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/primary">
+
+        <ImageView
+            android:id="@+id/image_cover"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:transitionName="image_cover" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_toEndOf="@+id/image_cover"
+            android:layout_toLeftOf="@+id/btn_toggle_play"
+            android:layout_toRightOf="@+id/image_cover"
+            android:layout_toStartOf="@+id/btn_toggle_play"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingLeft="16dp"
+            android:paddingStart="16dp">
+
+            <TextView
+                android:id="@+id/text_song"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@{metadata.song}"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:transitionName="text_song"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/text_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@{metadata.artist}"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:transitionName="text_artist"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/text_show"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@{metadata.show}"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:transitionName="text_show"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <se.materka.conflux.custom.AnimatedPlayButton
+            android:id="@+id/btn_toggle_play"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:background="@android:color/transparent" />
+    </RelativeLayout>
+
+</layout>

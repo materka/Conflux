@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_save"
+        android:title="Save Station"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/action_play"
+        android:title="Play Station"
+        app:showAsAction="always"/>
+
+    <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/action_settings"
+        android:title="Settings"
+        app:showAsAction="never"/>
+    <item android:id="@+id/action_create_stations"
+          android:title="Create Stations"
+          app:showAsAction="never"/>
+    <item android:id="@+id/action_switch_image"
+          android:title="Switch Image"
+          app:showAsAction="never"/>
+
+</menu>
