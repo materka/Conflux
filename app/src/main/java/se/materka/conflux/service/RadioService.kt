@@ -16,11 +16,13 @@
 
 package se.materka.conflux.service
 
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
+import android.support.v4.app.NotificationCompat
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
@@ -36,7 +38,9 @@ import io.reactivex.subjects.PublishSubject
 import okhttp3.OkHttpClient
 import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.info
+import org.jetbrains.anko.notificationManager
 import se.materka.conflux.R
+import se.materka.conflux.ui.main.MainActivity
 import se.materka.exoplayershoutcastplugin.Metadata
 import se.materka.exoplayershoutcastplugin.ShoutcastDataSourceFactory
 import se.materka.exoplayershoutcastplugin.ShoutcastMetadataListener
@@ -104,10 +108,19 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
         return START_STICKY
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        notificationManager.cancel(1)
+    }
+
     override fun onMetadataReceived(data: Metadata) {
         info("MetadataBindable Received")
         currentMetadata = data
+        buildNotification(buildAction(android.R.drawable.ic_media_pause, "Stop", RadioService.ACTION_STOP),
+                true, data)
     }
+
+
 
     fun stop() {
         info("Stopping playback")
@@ -155,6 +168,38 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
         player.playWhenReady = true
     }
 
+    private fun buildAction(icon: Int, title: String, intentAction: String): NotificationCompat.Action {
+        val intent = Intent(this, RadioService::class.java)
+        intent.action = intentAction
+        val pendingIntent = PendingIntent.getService(this, 1, intent, 0)
+        return NotificationCompat.Action.Builder(icon, title, pendingIntent).build()
+    }
+
+    private fun buildNotification(action: NotificationCompat.Action, ongoing: Boolean, metadata: Metadata?) {
+
+        val notificationIntent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val builder = NotificationCompat.Builder(this).apply {
+            setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            setSmallIcon(R.mipmap.ic_launcher)
+            setContentTitle(if (metadata != null) metadata.station else "")
+            setContentText(if (metadata != null) metadata.artist + " - " + metadata.song else "")
+            setContentIntent(contentIntent)
+            setOngoing(ongoing)
+            addAction(action)
+        }
+
+        if (!ongoing) {
+            val intent = Intent(this, RadioService::class.java).apply {
+                setAction(RadioService.ACTION_STOP)
+            }
+            builder.setDeleteIntent(PendingIntent.getService(this, 1, intent, 0))
+        }
+        notificationManager.notify(1, builder.build())
+    }
+
     inner class StreamServiceBinder : Binder() {
         val service: RadioService
             get() = this@RadioService
@@ -186,6 +231,8 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
                     info("PlaybackState: Ended")
                     event.onNext(RadioEvent.STATUS_STOPPED)
                     isPlaying.onNext(false)
+                    buildNotification(buildAction(android.R.drawable.ic_media_play, "Play", RadioService.ACTION_PLAY),
+                            false, null)
                 }
                 ExoPlayer.STATE_IDLE -> info("PlaybackState: Idle")
                 ExoPlayer.STATE_READY -> {
@@ -196,6 +243,8 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
                     } else {
                         event.onNext(RadioEvent.STATUS_STOPPED)
                         isPlaying.onNext(false)
+                        buildNotification(buildAction(android.R.drawable.ic_media_play, "Play", RadioService.ACTION_PLAY),
+                                false, null)
                     }
                 }
             }

@@ -36,8 +36,7 @@ import io.reactivex.subjects.PublishSubject
 import se.materka.conflux.model.Station
 import se.materka.conflux.service.RadioEvent
 import se.materka.conflux.service.RadioService
-import se.materka.conflux.ui.main.MainActivity
-import se.materka.exoplayershoutcastplugin.Metadata;
+import se.materka.exoplayershoutcastplugin.Metadata
 
 
 object RadioManager : ServiceConnection, AudioManager.OnAudioFocusChangeListener {
@@ -85,8 +84,6 @@ object RadioManager : ServiceConnection, AudioManager.OnAudioFocusChangeListener
                     .subscribeOn(Schedulers.newThread())
                     ?.observeOn(AndroidSchedulers.mainThread())
                     ?.subscribe({ metadata ->
-                        buildNotification(buildAction(android.R.drawable.ic_media_pause, "Stop", RadioService.ACTION_STOP),
-                                true, metadata)
                         currentMetadata = metadata
                     })
 
@@ -97,8 +94,6 @@ object RadioManager : ServiceConnection, AudioManager.OnAudioFocusChangeListener
                         radioStatusObservable.onNext(event)
                         when (event) {
                             RadioEvent.STATUS_STOPPED -> {
-                                buildNotification(buildAction(android.R.drawable.ic_media_play, "Play", RadioService.ACTION_PLAY),
-                                        false, null)
                                 metadataObservable.onNext(Metadata("", "", "", "", "", "", "", "")) // TODO: add static empty flag to metadata class
                             }
                         }
@@ -158,39 +153,6 @@ object RadioManager : ServiceConnection, AudioManager.OnAudioFocusChangeListener
     private fun isServiceRunning(context: Context, cls: Class<*>): Boolean {
         val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         return manager.getRunningServices(Integer.MAX_VALUE).any { cls.name == it.service.className }
-    }
-
-    private fun buildAction(icon: Int, title: String, intentAction: String): NotificationCompat.Action {
-        val intent = Intent(service, RadioService::class.java)
-        intent.action = intentAction
-        val pendingIntent = PendingIntent.getService(service, 1, intent, 0)
-        return NotificationCompat.Action.Builder(icon, title, pendingIntent).build()
-    }
-
-    private fun buildNotification(action: NotificationCompat.Action, ongoing: Boolean, metadata: Metadata?) {
-
-        val notificationIntent = Intent(service, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val contentIntent = PendingIntent.getActivity(service, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val builder = NotificationCompat.Builder(service).apply {
-            setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            setSmallIcon(R.mipmap.ic_launcher)
-            setContentTitle(if (metadata != null) metadata.station else "")
-            setContentText(if (metadata != null) metadata.artist + " - " + metadata.song else "")
-            setContentIntent(contentIntent)
-            setOngoing(ongoing)
-            addAction(action)
-        }
-
-        if (!ongoing) {
-            val intent = Intent(service, RadioService::class.java).apply {
-                setAction(RadioService.ACTION_STOP)
-            }
-            builder.setDeleteIntent(PendingIntent.getService(service, 1, intent, 0))
-        }
-
-        (service?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(1, builder.build())
     }
 }
 
