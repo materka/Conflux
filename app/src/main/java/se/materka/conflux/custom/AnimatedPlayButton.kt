@@ -37,4 +37,14 @@ class AnimatedPlayButton : ImageButton {
         currentDrawable?.start()
         isShowingPlay = !isShowingPlay
     }
+
+    fun showPlay() {
+        isShowingPlay = false
+        toggle()
+    }
+
+    fun showPause() {
+        isShowingPlay = true
+        toggle()
+    }
 }

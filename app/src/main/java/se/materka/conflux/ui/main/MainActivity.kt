@@ -4,14 +4,20 @@ import android.arch.lifecycle.LifecycleRegistry
 import android.arch.lifecycle.LifecycleRegistryOwner
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.ComponentName
 import android.content.Context
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
-import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.Fragment
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
+import android.util.Log
 import android.view.MenuItem
 import com.mikepenz.community_material_typeface_library.CommunityMaterial.Icon
 import com.mikepenz.iconics.IconicsDrawable
@@ -21,25 +27,73 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.jetbrains.anko.itemsSequence
 import se.materka.conflux.R
+import se.materka.conflux.TAG
+import se.materka.conflux.service.RadioService
 import se.materka.conflux.ui.player.PlayerViewModel
 import se.materka.conflux.ui.station.PlayStationFragment
-import se.materka.conflux.ui.station.StationListFragment
-import se.materka.conflux.ui.station.StationViewModel
+import se.materka.conflux.ui.station.BrowseFragment
+import se.materka.conflux.ui.station.BrowseViewModel
+import se.materka.exoplayershoutcastplugin.Metadata
 
 
 class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
+    private lateinit var mediaBrowser: MediaBrowserCompat
+
+    private val playerViewModel: PlayerViewModel by lazy {
+        ViewModelProviders.of(this).get(PlayerViewModel::class.java)
+    }
+
+    private val browseViewModel: BrowseViewModel by lazy {
+        ViewModelProviders.of(this).get(BrowseViewModel::class.java)
+    }
 
     private val lifecycleRegistry by lazy {
         LifecycleRegistry(this)
     }
 
-    private val stationViewModel: StationViewModel by lazy {
-        ViewModelProviders.of(this).get(StationViewModel::class.java)
+    private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
+        override fun onConnected() {
+            // Create a MediaControllerCompat
+            MediaControllerCompat(this@MainActivity, mediaBrowser.sessionToken).let { controller ->
+                MediaControllerCompat.setMediaController(this@MainActivity, controller)
+                controller.registerCallback(controllerCallback)
+            }
+        }
+
+        override fun onConnectionSuspended() {
+            MediaControllerCompat.getMediaController(this@MainActivity)?.let { controller ->
+                controller.unregisterCallback(controllerCallback)
+                MediaControllerCompat.setMediaController(this@MainActivity, null)
+            }
+        }
+
+        override fun onConnectionFailed() {
+            Log.i(TAG, "connection failed")
+        }
     }
 
-    private val playerViewModel: PlayerViewModel by lazy {
-        ViewModelProviders.of(this).get(PlayerViewModel::class.java)
+    private val controllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
+        override fun onMetadataChanged(data: MediaMetadataCompat?) {
+            Log.i(TAG, "New metadata")
+            val metadata = Metadata(
+                    artist = data?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST),
+                    song = data?.getString(MediaMetadataCompat.METADATA_KEY_TITLE),
+                    show = null,
+                    channels = null,
+                    station = null,
+                    bitrate = null,
+                    genre = null,
+                    url = null)
+            playerViewModel.setMetadata(metadata)
+        }
+
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            MediaControllerCompat.getMediaController(this@MainActivity)?.let { controller ->
+                playerViewModel.isPlaying(controller.playbackState.state == PlaybackStateCompat.STATE_PLAYING)
+            }
+        }
     }
+
 
     private val drawerToggle by lazy {
         // NOTE: Make sure you pass in a valid toolbar reference.  ActionBarDrawToggle() does not require it
@@ -79,7 +133,7 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
         val fragmentClass: Class<*>
         when (menuItem.itemId) {
             R.id.nav_play_station -> fragmentClass = PlayStationFragment::class.java
-            else -> fragmentClass = StationListFragment::class.java
+            else -> fragmentClass = BrowseFragment::class.java
         }
 
         try {
@@ -104,13 +158,21 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar as Toolbar)
         setupDrawerContent()
-        playerViewModel.isPlaying.observe(this, Observer<Boolean> { playing ->
+        /*playerViewModel.isPlaying.observe(this, Observer<Boolean> { playing ->
             BottomSheetBehavior.from(player.view).state = if (playing ?: true)
                 BottomSheetBehavior.STATE_EXPANDED
             else
-                BottomSheetBehavior.STATE_COLLAPSED
+                BottomSheetBehavior.STATE_EXPANDED
+        })*/
+        browseViewModel.selected.observe(this, Observer {
+            val uri: Uri = Uri.parse(it?.url)
+            MediaControllerCompat.getMediaController(this).transportControls?.playFromUri(uri, null)
         })
-        supportFragmentManager.beginTransaction().replace(R.id.content, StationListFragment()).commit()
+        supportFragmentManager.beginTransaction().replace(R.id.content, BrowseFragment()).commit()
+        mediaBrowser = MediaBrowserCompat(this,
+                ComponentName(this, RadioService::class.java),
+                connectionCallback, null)
+        mediaBrowser.connect()
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

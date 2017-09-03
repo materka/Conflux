@@ -16,12 +16,12 @@ import se.materka.conflux.custom.FullScreenDialogFragment
 
 class EditStationDialogFragment : FullScreenDialogFragment() {
 
-    private val stationViewModel: StationViewModel by lazy {
-        ViewModelProviders.of(activity).get(StationViewModel::class.java)
+    private val browseViewModel: BrowseViewModel by lazy {
+        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
     }
 
     private val station by lazy {
-        stationViewModel.selected.value
+        browseViewModel.selected.value
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -35,7 +35,7 @@ class EditStationDialogFragment : FullScreenDialogFragment() {
             t.setOnMenuItemClickListener {
                 station?.name = text_name.text.toString()
                 station?.url = text_url.text.toString()
-                stationViewModel.updateStation()
+                browseViewModel.updateStation()
                 dismiss()
                 true
             }

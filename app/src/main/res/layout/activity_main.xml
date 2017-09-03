@@ -18,7 +18,7 @@
 
     <fragment
         android:id="@+id/stations"
-        android:name="se.greenbird.conflux.ui.station.StationListFragment"
+        android:name="se.greenbird.conflux.ui.statBrowserFragmentment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/player"
@@ -64,7 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             app:behavior_hideable="true"
-            app:behavior_peekHeight="0dp"
+            app:behavior_peekHeight="60dp"
             app:layout_behavior="android.support.design.widget.BottomSheetBehavior" />
     </android.support.design.widget.CoordinatorLayout>
 

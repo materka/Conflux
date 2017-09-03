@@ -16,8 +16,8 @@ import se.materka.conflux.R
 
 
 class StationActionDialogFragment : BottomSheetDialogFragment() {
-    private val stationViewModel: StationViewModel by lazy {
-        ViewModelProviders.of(activity).get(StationViewModel::class.java)
+    private val browseViewModel: BrowseViewModel by lazy {
+        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -40,7 +40,7 @@ class StationActionDialogFragment : BottomSheetDialogFragment() {
                     .setTitle("REMOVE STATION")
                     .setMessage("Are you sure you want to remove this station?")
                     .setPositiveButton("DO IT") { dialog, which ->
-                        stationViewModel.deleteStation()
+                        browseViewModel.deleteStation()
                         this@StationActionDialogFragment.dismiss()
                     }
                     .setNegativeButton("CANCEL") { dialog, which -> dialog.dismiss() }

@@ -14,13 +14,14 @@ import se.materka.conflux.model.Station
  * Created by Privat on 5/20/2017.
  */
 
-class StationViewModel(application: Application) : AndroidViewModel(application) {
+class BrowseViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao: StationDao by lazy {
         AppDatabase.Companion.instance(application).stationDao()
     }
 
     val selected = MutableLiveData<Station>()
+        get() = field
 
     fun select(station: Station?) {
         selected.value = station

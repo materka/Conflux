@@ -9,10 +9,6 @@ import se.materka.conflux.database.AppDatabase
 import se.materka.conflux.database.CreateStation
 
 class ConfluxApplication : Application() {
-    val radioManager: RadioManager by lazy {
-        RadioManager.init(this)
-        RadioManager
-    }
 
     override fun onCreate() {
         super.onCreate()

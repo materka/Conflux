@@ -4,6 +4,7 @@ import android.arch.lifecycle.LifecycleFragment
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.support.v4.media.session.MediaControllerCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,41 +13,47 @@ import se.materka.conflux.MetadataBindable
 import se.materka.conflux.databinding.FragmentPlayerCompactBinding
 import se.materka.conflux.utils.hideIfEmpty
 
-/**
- * Created by Privat on 6/8/2017.
- */
-
 class PlayerCompactFragment : LifecycleFragment() {
-    val playerViewModel: PlayerViewModel by lazy {
-        ViewModelProviders.of(this).get(PlayerViewModel::class.java)
+
+    private val playerViewModel: PlayerViewModel by lazy {
+        ViewModelProviders.of(activity).get(PlayerViewModel::class.java)
     }
 
-    val metadata = MetadataBindable()
+    private val metadata = MetadataBindable()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentPlayerCompactBinding.inflate(inflater, container, false)
-        playerViewModel.bindMetadata(metadata)
+        playerViewModel.metadata.observe(this, Observer {
+            metadata.setArtist(it?.artist)
+            metadata.setSong(it?.song)
+        })
+
+        playerViewModel.isPlaying.observe(this, Observer {
+            if (it == true) {
+                btn_toggle_play.apply {
+                    showPause()
+                    setOnClickListener { MediaControllerCompat.getMediaController(activity).transportControls.stop() }
+                }
+            } else {
+                btn_toggle_play.apply {
+                    showPlay()
+                    setOnClickListener { MediaControllerCompat.getMediaController(activity).transportControls.play() }
+                }
+            }
+        })
+
         binding.metadata = metadata
         return binding.root
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        playerViewModel.isPlaying.observe(this, Observer<Boolean> { playing ->
-            btn_toggle_play.toggle()
-
-            /*if (playing == true) {
-                btn_toggle_play.setImageDrawable(icon(context, CommunityMaterial.Icon.cmd_pause))
-            } else {
-                btn_toggle_play.setImageDrawable(icon(context, CommunityMaterial.Icon.cmd_play))
-            }*/
-        })
-
-        btn_toggle_play.setOnClickListener {
-            playerViewModel.togglePlay()
-        }
-
         text_artist.hideIfEmpty(true)
         text_song.hideIfEmpty(true)
         text_show.hideIfEmpty(true)
+        btn_toggle_play.showPlay()
     }
 }

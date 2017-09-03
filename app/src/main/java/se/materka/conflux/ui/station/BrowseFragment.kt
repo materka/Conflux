@@ -18,12 +18,12 @@ import se.materka.conflux.R
 import se.materka.conflux.model.Station
 import se.materka.conflux.ui.player.PlayerViewModel
 
-class StationListFragment : LifecycleFragment() {
+class BrowseFragment : LifecycleFragment() {
 
     private lateinit var stationAdapter: StationAdapter
 
-    private val stationViewModel: StationViewModel by lazy {
-        ViewModelProviders.of(activity).get(StationViewModel::class.java)
+    private val browseViewModel: BrowseViewModel by lazy {
+        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
     }
 
     private val playerViewModel: PlayerViewModel by lazy {
@@ -46,7 +46,7 @@ class StationListFragment : LifecycleFragment() {
             addItemDecoration(DividerItemDecoration(context, false, false))
         }
 
-        stationViewModel.getStations()?.observe(this, Observer<List<Station>> { stations ->
+        browseViewModel.getStations()?.observe(this, Observer<List<Station>> { stations ->
             if (stations != null) {
                 stationAdapter.stations = stations
             }
@@ -54,12 +54,12 @@ class StationListFragment : LifecycleFragment() {
     }
 
     fun itemClicked(station: Station) {
-        stationViewModel.select(station)
+        browseViewModel.select(station)
         playerViewModel.play(station)
     }
 
     fun itemLongClicked(station: Station) {
-        stationViewModel.select(station)
+        browseViewModel.select(station)
         StationActionDialogFragment().show(activity.supportFragmentManager, "Dialog");
     }
 

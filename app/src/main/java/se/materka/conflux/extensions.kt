@@ -5,4 +5,5 @@ package se.materka.conflux
  */
 
 
-inline fun <reified T : Any>T.TAG() = T::class.java.simpleName
+inline val <reified T : Any>T.TAG
+    get() = T::class.java.simpleName

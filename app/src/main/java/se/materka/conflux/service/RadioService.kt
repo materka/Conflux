@@ -16,13 +16,20 @@
 
 package se.materka.conflux.service
 
-import android.app.PendingIntent
-import android.app.Service
 import android.content.Intent
 import android.net.Uri
-import android.os.Binder
-import android.os.IBinder
+import android.os.Bundle
 import android.support.v4.app.NotificationCompat
+import android.support.v4.content.ContextCompat
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaBrowserServiceCompat
+import android.support.v4.media.MediaDescriptionCompat
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaButtonReceiver
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
@@ -34,27 +41,27 @@ import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.util.Util
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.PublishSubject
 import okhttp3.OkHttpClient
-import org.jetbrains.anko.AnkoLogger
-import org.jetbrains.anko.info
 import org.jetbrains.anko.notificationManager
 import se.materka.conflux.R
-import se.materka.conflux.ui.main.MainActivity
+import se.materka.conflux.TAG
 import se.materka.exoplayershoutcastplugin.Metadata
 import se.materka.exoplayershoutcastplugin.ShoutcastDataSourceFactory
 import se.materka.exoplayershoutcastplugin.ShoutcastMetadataListener
 import java.util.*
 
 @Suppress("JoinDeclarationAndAssignment")
-class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
+class RadioService : MediaBrowserServiceCompat(), ShoutcastMetadataListener {
+    override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
-    private var currentUri: Uri = Uri.EMPTY
-    private var currentMetadata: Metadata? = null
-        set(value) {
-            field = value
-            metadata.onNext(field)
-        }
+    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+        return MediaBrowserServiceCompat.BrowserRoot("", null)
+    }
+
+    private var currentUri: Uri? = null
+
     private val player: SimpleExoPlayer by lazy {
         ExoPlayerFactory.newSimpleInstance(applicationContext,
                 DefaultTrackSelector(),
@@ -71,21 +78,34 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
 
     private var audioSource: MediaSource? = null
 
-    private val binder by lazy {
-        StreamServiceBinder()
-    }
-
     private val uris by lazy {
         Stack<Uri>()
     }
 
-    val metadata: PublishSubject<Metadata> = PublishSubject.create()
-    val event: PublishSubject<RadioEvent> = PublishSubject.create()
-    val isPlaying: PublishSubject<Boolean> = PublishSubject.create()
+    private val mediaSession: MediaSessionCompat by lazy {
+        MediaSessionCompat(this@RadioService, TAG).apply {
+            setPlaybackState(stateBuilder.build())
+            setCallback(MediaSessionCallback())
+            setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+                    or MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
+        }
+    }
+
+    private val stateBuilder: PlaybackStateCompat.Builder by lazy {
+        PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_PLAY
+                        or PlaybackStateCompat.ACTION_PLAY_PAUSE
+                        or PlaybackStateCompat.ACTION_STOP)
+    }
+
+    private val metadataBuilder: MediaMetadataCompat.Builder by lazy {
+        MediaMetadataCompat.Builder()
+    }
 
     override fun onCreate() {
         super.onCreate()
         player.addListener(ExoPlayerEventListener())
+        sessionToken = mediaSession.sessionToken
     }
 
     override fun onDestroy() {
@@ -94,18 +114,9 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
 
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        return binder
-    }
-
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        if (intent.action != null) {
-            when (intent.action) {
-                ACTION_PLAY -> preparePlay(currentUri)
-                ACTION_STOP -> stop()
-            }
-        }
-        return START_STICKY
+        MediaButtonReceiver.handleIntent(mediaSession, intent)
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -114,16 +125,18 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
     }
 
     override fun onMetadataReceived(data: Metadata) {
-        info("MetadataBindable Received")
-        currentMetadata = data
-        buildNotification(buildAction(android.R.drawable.ic_media_pause, "Stop", RadioService.ACTION_STOP),
-                true, data)
+        Log.i(TAG, "Metadata Received")
+        val metadata: MediaMetadataCompat = metadataBuilder
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, data.song)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, data.artist)
+                .build()
+        mediaSession.setMetadata(metadata)
+        buildNotification()
     }
 
 
-
     fun stop() {
-        info("Stopping playback")
+        Log.i(TAG, "Stopping playback")
         if (player.playWhenReady) {
             player.stop()
             player.playWhenReady = false
@@ -138,28 +151,30 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
 
         if (uri != Uri.EMPTY) {
             currentUri = uri
-            if (uris.isEmpty() && PlaylistService.isPlayList(currentUri)) {
-                PlaylistService.downloadFile(currentUri)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({ list ->
-                            // OnNext
-                            if (list != null && !list.isEmpty()) {
-                                uris.addAll(list)
-                                play(uris.pop())
-                            }
-                        }, {
-                            // OnError
-                            event.onNext(RadioEvent.ERROR_INVALID_URL)
-                        })
-            } else {
-                play(currentUri)
+            currentUri?.let {
+                if (uris.isEmpty() && PlaylistService.isPlayList(it)) {
+                    PlaylistService.downloadFile(it)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({ list ->
+                                // OnNext
+                                if (list != null && !list.isEmpty()) {
+                                    uris.addAll(list)
+                                    play(uris.pop())
+                                }
+                            }, {
+                                // OnError
+                            })
+                } else {
+                    play(it)
+                }
             }
+
         }
     }
 
     private fun play(uri: Uri) {
-        info("Starting playback - $uri")
+        Log.i(TAG, "Starting playback - $uri")
 
         // This is the MediaSource representing the media to be played.
         audioSource = ExtractorMediaSource(uri,
@@ -168,108 +183,161 @@ class RadioService : Service(), ShoutcastMetadataListener, AnkoLogger {
         player.playWhenReady = true
     }
 
-    private fun buildAction(icon: Int, title: String, intentAction: String): NotificationCompat.Action {
-        val intent = Intent(this, RadioService::class.java)
-        intent.action = intentAction
-        val pendingIntent = PendingIntent.getService(this, 1, intent, 0)
-        return NotificationCompat.Action.Builder(icon, title, pendingIntent).build()
+    private fun buildNotification() {
+        // Given a media session and its context (usually the component containing the session)
+        // Create a NotificationCompat.Builder
+
+        // Get the session's metadata
+        val controller: MediaControllerCompat = mediaSession.controller
+        val mediaMetadata: MediaMetadataCompat? = controller.metadata
+        val description: MediaDescriptionCompat? = mediaMetadata?.description
+
+        val builder: NotificationCompat.Builder = NotificationCompat.Builder(applicationContext, "")
+
+        builder
+                // Add the metadata for the currently playing track
+                .setContentTitle(description?.title)
+                .setContentText(description?.subtitle)
+                .setSubText(description?.description)
+                .setLargeIcon(description?.iconBitmap)
+
+                // Enable launching the player by clicking the notification
+                .setContentIntent(controller.sessionActivity)
+
+                // Stop the service when the notification is swiped away
+                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
+                        PlaybackStateCompat.ACTION_STOP))
+
+                // Make the transport controls visible on the lockscreen
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+
+                // Add an app icon and set its accent color
+                // Be careful about the color
+                .setSmallIcon(android.R.drawable.ic_media_play)
+                .setColor(ContextCompat.getColor(this, R.color.primary_dark))
+
+                // Add a pause button
+                .addAction(NotificationCompat.Action(
+                        android.R.drawable.ic_media_pause, "PAUS",
+                        MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
+                                PlaybackStateCompat.ACTION_STOP)))
+
+                // Take advantage of MediaStyle features
+                .setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
+                        .setMediaSession(mediaSession.sessionToken)
+                        .setShowActionsInCompactView(0)
+                        .setShowCancelButton(true)
+                        .setCancelButtonIntent(
+                                MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
+                                        PlaybackStateCompat.ACTION_STOP)))
+        startForeground(42, builder.build())
     }
 
-    private fun buildNotification(action: NotificationCompat.Action, ongoing: Boolean, metadata: Metadata?) {
-
-        val notificationIntent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+    private fun handlePlayerError(error: ExoPlaybackException?) {
+        if (!uris.isEmpty()) {
+            preparePlay(uris.pop())
+        } else {
+            val state = stateBuilder
+                    .setState(PlaybackStateCompat.STATE_ERROR, 0L, 0f)
+                    .setErrorMessage(404, "No working url found")
+                    .build()
+            mediaSession.setPlaybackState(state)
         }
-        val contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        val builder = NotificationCompat.Builder(this).apply {
-            setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            setSmallIcon(R.mipmap.ic_launcher)
-            setContentTitle(if (metadata != null) metadata.station else "")
-            setContentText(if (metadata != null) metadata.artist + " - " + metadata.song else "")
-            setContentIntent(contentIntent)
-            setOngoing(ongoing)
-            addAction(action)
-        }
-
-        if (!ongoing) {
-            val intent = Intent(this, RadioService::class.java).apply {
-                setAction(RadioService.ACTION_STOP)
+        Log.i(TAG, "PlaybackError: ${error?.cause.toString()}")
+        if (error?.sourceException is HttpDataSource.InvalidResponseCodeException) {
+            val responseCode = (error.sourceException as HttpDataSource.InvalidResponseCodeException).responseCode
+            when (responseCode) {
+                404 -> {
+                    val state = stateBuilder
+                            .setState(PlaybackStateCompat.STATE_ERROR, 0L, 0f)
+                            .setErrorMessage(404, "Url not found")
+                            .build()
+                    mediaSession.setPlaybackState(state)
+                }
             }
-            builder.setDeleteIntent(PendingIntent.getService(this, 1, intent, 0))
         }
-        notificationManager.notify(1, builder.build())
     }
 
-    inner class StreamServiceBinder : Binder() {
-        val service: RadioService
-            get() = this@RadioService
+    private fun handlePlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+        when (playbackState) {
+            ExoPlayer.STATE_BUFFERING -> {
+                Log.i(TAG, "PlaybackState: Buffering")
+                setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
+            }
+            ExoPlayer.STATE_ENDED -> {
+                Log.i(TAG, "PlaybackState: Ended")
+                setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
+                stopForeground(true)
+            }
+            ExoPlayer.STATE_IDLE -> {
+                Log.i(TAG, "PlaybackState: Idle")
+                setPlaybackState(PlaybackStateCompat.STATE_NONE)
+            }
+            ExoPlayer.STATE_READY -> {
+                Log.i(TAG, "PlaybackState: Ready")
+                if (playWhenReady) {
+                    setPlaybackState(PlaybackStateCompat.STATE_PLAYING)
+                    buildNotification()
+                } else {
+                    setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
+                    stopForeground(true)
+                }
+            }
+        }
+    }
+
+    private fun setPlaybackState(state: Int) {
+        mediaSession.setPlaybackState(stateBuilder.setState(state, 0L, 0f).build())
     }
 
     private inner class ExoPlayerEventListener : ExoPlayer.EventListener {
         override fun onPlayerError(error: ExoPlaybackException?) {
-            if (!uris.isEmpty()) {
-                preparePlay(uris.pop())
-            } else {
-                event.onNext(RadioEvent.ERROR_NO_VALID_URL_FOUND)
-            }
-            info("PlaybackError: ${error?.cause.toString()}")
-            if (error?.sourceException is HttpDataSource.InvalidResponseCodeException) {
-                val responseCode = (error.sourceException as HttpDataSource.InvalidResponseCodeException).responseCode
-                when (responseCode) {
-                    404 -> event.onNext(RadioEvent.ERROR_INVALID_URL)
-                }
-            }
+            handlePlayerError(error)
         }
 
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-            when (playbackState) {
-                ExoPlayer.STATE_BUFFERING -> {
-                    info("PlaybackState: Buffering")
-                    event.onNext(RadioEvent.STATUS_LOADING)
-                }
-                ExoPlayer.STATE_ENDED -> {
-                    info("PlaybackState: Ended")
-                    event.onNext(RadioEvent.STATUS_STOPPED)
-                    isPlaying.onNext(false)
-                    buildNotification(buildAction(android.R.drawable.ic_media_play, "Play", RadioService.ACTION_PLAY),
-                            false, null)
-                }
-                ExoPlayer.STATE_IDLE -> info("PlaybackState: Idle")
-                ExoPlayer.STATE_READY -> {
-                    info("PlaybackState: Ready")
-                    if (playWhenReady) {
-                        event.onNext(RadioEvent.STATUS_PLAYING)
-                        isPlaying.onNext(true)
-                    } else {
-                        event.onNext(RadioEvent.STATUS_STOPPED)
-                        isPlaying.onNext(false)
-                        buildNotification(buildAction(android.R.drawable.ic_media_play, "Play", RadioService.ACTION_PLAY),
-                                false, null)
-                    }
-                }
-            }
+            handlePlayerStateChanged(playWhenReady, playbackState)
         }
 
         override fun onLoadingChanged(isLoading: Boolean) {
-            info("Loading: $isLoading")
+            Log.i(TAG, "Loading: $isLoading")
         }
 
         override fun onPositionDiscontinuity() {
-            info("onPositionDiscontinuity: discontinuity detected")
+            Log.i(TAG, "onPositionDiscontinuity: discontinuity detected")
         }
 
         override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
-            info("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
+            Log.i(TAG, "onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
         }
 
         override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-            info("onTracksChanged")
+            Log.i(TAG, "onTracksChanged")
+        }
+    }
+
+    private inner class MediaSessionCallback : MediaSessionCompat.Callback() {
+
+        override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
+            uri?.let {
+                currentUri = uri
+                mediaSession.isActive = true
+                play(it)
+                buildNotification()
+            }
         }
 
+        override fun onPlay() {
+            Log.d(TAG, "play")
+            currentUri?.let {
+                play(it)
+            }
+        }
+
+        override fun onStop() {
+            mediaSession.isActive = false
+            stop()
+        }
     }
 
-    companion object {
-        val ACTION_PLAY = "action_play"
-        val ACTION_STOP = "action_stop"
-    }
 }
