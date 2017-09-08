@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.app.Fragment
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -27,14 +28,13 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.jetbrains.anko.itemsSequence
 import se.materka.conflux.R
-import se.materka.conflux.TAG
-import se.materka.conflux.service.RadioService
+import se.materka.conflux.utils.TAG
+import se.materka.conflux.PlayService
 import se.materka.conflux.ui.player.PlayerViewModel
 import se.materka.conflux.ui.station.PlayStationFragment
-import se.materka.conflux.ui.station.BrowseFragment
-import se.materka.conflux.ui.station.BrowseViewModel
-import se.materka.exoplayershoutcastplugin.Metadata
-
+import se.materka.conflux.ui.browse.BrowseFragment
+import se.materka.conflux.ui.browse.BrowseViewModel
+import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
 class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
     private lateinit var mediaBrowser: MediaBrowserCompat
@@ -68,14 +68,14 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
         }
 
         override fun onConnectionFailed() {
-            Log.i(TAG, "connection failed")
+            Log.d(TAG, "connection failed")
         }
     }
 
     private val controllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
         override fun onMetadataChanged(data: MediaMetadataCompat?) {
-            Log.i(TAG, "New metadata")
-            val metadata = Metadata(
+            Log.d(TAG, "New metadata")
+            val metadata = ShoutcastMetadata(
                     artist = data?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST),
                     song = data?.getString(MediaMetadataCompat.METADATA_KEY_TITLE),
                     show = null,
@@ -158,19 +158,19 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar as Toolbar)
         setupDrawerContent()
-        /*playerViewModel.isPlaying.observe(this, Observer<Boolean> { playing ->
-            BottomSheetBehavior.from(player.view).state = if (playing ?: true)
+        playerViewModel.isPlaying.observe(this, Observer<Boolean> { playing ->
+            BottomSheetBehavior.from(player.view).state = if (playing != false)
                 BottomSheetBehavior.STATE_EXPANDED
             else
-                BottomSheetBehavior.STATE_EXPANDED
-        })*/
+                BottomSheetBehavior.STATE_COLLAPSED
+        })
         browseViewModel.selected.observe(this, Observer {
             val uri: Uri = Uri.parse(it?.url)
             MediaControllerCompat.getMediaController(this).transportControls?.playFromUri(uri, null)
         })
         supportFragmentManager.beginTransaction().replace(R.id.content, BrowseFragment()).commit()
         mediaBrowser = MediaBrowserCompat(this,
-                ComponentName(this, RadioService::class.java),
+                ComponentName(this, PlayService::class.java),
                 connectionCallback, null)
         mediaBrowser.connect()
     }

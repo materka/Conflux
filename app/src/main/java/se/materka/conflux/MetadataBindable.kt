@@ -41,4 +41,10 @@ class MetadataBindable : BaseObservable() {
         this.song = song
         notifyPropertyChanged(BR.song)
     }
+
+    fun clear() {
+        setArtist(null)
+        setSong(null)
+        setShow(null)
+    }
 }

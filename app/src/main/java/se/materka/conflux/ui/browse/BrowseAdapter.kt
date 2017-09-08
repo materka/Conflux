@@ -1,4 +1,4 @@
-package se.materka.conflux.ui.station
+package se.materka.conflux.ui.browse
 
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.RecyclerView.ViewHolder
@@ -7,10 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.station_list_item_layout.view.*
 import se.materka.conflux.R
-import se.materka.conflux.model.Station
+import se.materka.conflux.database.Station
 
-class StationAdapter(val onItemClicked: (station: Station) -> Unit?,
-                     val onItemLongClicked: (station: Station) -> Unit?) : RecyclerView.Adapter<ViewHolder>() {
+class BrowseAdapter(val onItemClicked: (station: Station) -> Unit?,
+                    val onItemLongClicked: (station: Station) -> Unit?) : RecyclerView.Adapter<ViewHolder>() {
     private val FOOTER_VIEW = 1
 
     // Define a view holder for Footer view

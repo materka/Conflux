@@ -1,4 +1,4 @@
-package se.materka.conflux.ui.station
+package se.materka.conflux.ui.browse
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
@@ -7,7 +7,7 @@ import android.arch.lifecycle.MutableLiveData
 import org.jetbrains.anko.doAsync
 import se.materka.conflux.database.AppDatabase
 import se.materka.conflux.database.StationDao
-import se.materka.conflux.model.Station
+import se.materka.conflux.database.Station
 
 
 /**

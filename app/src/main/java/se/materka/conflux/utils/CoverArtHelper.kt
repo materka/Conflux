@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package se.materka.conflux.service
+package se.materka.conflux.utils
 
 import android.util.Log
 import kaaes.spotify.webapi.android.SpotifyApi
@@ -24,8 +24,8 @@ import kaaes.spotify.webapi.android.models.ArtistsPager
 import retrofit.client.Response
 import java.net.URL
 
-class SpotifyService {
-    private val TAG = SpotifyService::class.java.name
+class CoverArtHelper {
+    private val TAG = CoverArtHelper::class.java.name
     private lateinit var callback: (URL?) -> Unit
 
 
@@ -45,7 +45,7 @@ class SpotifyService {
         }
 
         override fun failure(error: SpotifyError?) {
-            Log.i(TAG, error?.message)
+            Log.d(TAG, error?.message)
             callback.invoke(null)
         }
     }

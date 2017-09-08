@@ -43,6 +43,7 @@ class PlayerCompactFragment : LifecycleFragment() {
                     showPlay()
                     setOnClickListener { MediaControllerCompat.getMediaController(activity).transportControls.play() }
                 }
+                metadata.clear()
             }
         })
 

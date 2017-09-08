@@ -2,7 +2,7 @@ package se.materka.conflux.database
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
-import se.materka.conflux.model.Station
+import se.materka.conflux.database.Station
 
 
 /**

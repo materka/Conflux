@@ -1,4 +1,4 @@
-package se.materka.conflux.custom
+package se.materka.conflux
 
 import android.content.Context
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
@@ -21,7 +21,6 @@ class AnimatedPlayButton : ImageButton {
     }
 
     private var isShowingPlay = true
-    private var currentDrawable :AnimatedVectorDrawableCompat? = null
 
     constructor(ctx: Context) : super(ctx)
 
@@ -32,19 +31,21 @@ class AnimatedPlayButton : ImageButton {
     constructor(ctx: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(ctx, attrs, defStyleAttr, defStyleRes)
 
     fun toggle() {
-        currentDrawable = if (isShowingPlay) playToPauseAnim else pauseToPlayAnim
-        this.setImageDrawable(currentDrawable)
-        currentDrawable?.start()
+        val drawable = if (isShowingPlay) playToPauseAnim else pauseToPlayAnim
+        this.setImageDrawable(drawable)
+        drawable?.start()
         isShowingPlay = !isShowingPlay
     }
 
     fun showPlay() {
-        isShowingPlay = false
-        toggle()
+        if(!isShowingPlay) {
+            toggle()
+        }
     }
 
     fun showPause() {
-        isShowingPlay = true
-        toggle()
+        if (isShowingPlay) {
+            toggle()
+        }
     }
 }

@@ -1,4 +1,4 @@
-package se.materka.conflux.ui.station
+package se.materka.conflux.ui.browse
 
 import android.arch.lifecycle.LifecycleFragment
 import android.arch.lifecycle.Observer
@@ -15,12 +15,14 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.station_list_layout.*
 import se.materka.conflux.R
-import se.materka.conflux.model.Station
+import se.materka.conflux.database.Station
 import se.materka.conflux.ui.player.PlayerViewModel
+import se.materka.conflux.ui.station.StationActionDialogFragment
+import se.materka.conflux.ui.browse.BrowseAdapter
 
 class BrowseFragment : LifecycleFragment() {
 
-    private lateinit var stationAdapter: StationAdapter
+    private lateinit var stationAdapter: BrowseAdapter
 
     private val browseViewModel: BrowseViewModel by lazy {
         ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
@@ -37,7 +39,7 @@ class BrowseFragment : LifecycleFragment() {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        stationAdapter = StationAdapter({ station -> itemClicked(station) },
+        stationAdapter = BrowseAdapter({ station -> itemClicked(station) },
                 { station -> itemLongClicked(station) })
 
         list.apply {

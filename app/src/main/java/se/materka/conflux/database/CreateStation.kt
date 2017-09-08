@@ -1,6 +1,6 @@
 package se.materka.conflux.database
 
-import se.materka.conflux.model.Station
+import se.materka.conflux.database.Station
 
 class CreateStation(val dao: StationDao) {
 

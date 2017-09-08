@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.station_menu.*
 import se.materka.conflux.R
+import se.materka.conflux.ui.browse.BrowseViewModel
 
 
 class StationActionDialogFragment : BottomSheetDialogFragment() {
@@ -21,8 +22,7 @@ class StationActionDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val v = inflater.inflate(R.layout.station_menu, container, false)
-        return v
+        return inflater.inflate(R.layout.station_menu, container, false)
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -39,11 +39,11 @@ class StationActionDialogFragment : BottomSheetDialogFragment() {
             AlertDialog.Builder(context, R.style.AppTheme_AlertDialog)
                     .setTitle("REMOVE STATION")
                     .setMessage("Are you sure you want to remove this station?")
-                    .setPositiveButton("DO IT") { dialog, which ->
+                    .setPositiveButton("DO IT") { _, _ ->
                         browseViewModel.deleteStation()
                         this@StationActionDialogFragment.dismiss()
                     }
-                    .setNegativeButton("CANCEL") { dialog, which -> dialog.dismiss() }
+                    .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
                     .show()
         }
     }

@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.0'
+    buildToolsVersion '26.0.1'
     defaultConfig {
         applicationId "se.greenbird.conflux"
         minSdkVersion 16
@@ -46,9 +46,6 @@ dependencies {
     implementation 'com.mikepenz:iconics-core:2.8.4@aar'
     implementation 'com.mikepenz:community-material-typeface:1.9.32.1@aar'
 
-    // Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.2.0'
-
     // Spotify Web API
     implementation 'com.github.kaaes:spotify-web-api-android:0.4.1'
 
@@ -71,10 +68,10 @@ dependencies {
     implementation 'org.jetbrains.anko:anko:0.10.1'
     kapt "com.android.databinding:compiler:$gradle_build_tools_version"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'com.github.materka:exoplayershoutcastplugin:1.0.0'
-    implementation 'com.google.android.exoplayer:exoplayer:r2.1.1'
-    implementation 'com.squareup.okhttp3:okhttp:3.7.0'
-
+    implementation ('com.github.materka:exoplayerShoutcastDataSource:-SNAPSHOT@aar') {
+        transitive=true
+    }
+    implementation 'com.google.android.exoplayer:exoplayer-core:r2.5.0'
 }
 repositories {
     mavenCentral()

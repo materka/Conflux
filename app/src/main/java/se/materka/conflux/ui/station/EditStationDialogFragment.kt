@@ -8,7 +8,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import kotlinx.android.synthetic.main.fragment_edit_station.*
 import se.materka.conflux.R
-import se.materka.conflux.custom.FullScreenDialogFragment
+import se.materka.conflux.FullScreenDialogFragment
+import se.materka.conflux.ui.browse.BrowseViewModel
 
 /**
  * Created by Privat on 5/22/2017.

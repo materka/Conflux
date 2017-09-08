@@ -9,12 +9,20 @@ import android.widget.TextView
 import com.mikepenz.iconics.IconicsDrawable
 import com.mikepenz.iconics.typeface.IIcon
 
-fun icon(context: Context, icon: IIcon, color: Int = Color.WHITE, sizeDp: Int = 24, paddingDp: Int = 0): IconicsDrawable {
-    return IconicsDrawable(context).icon(icon).color(color).sizeDp(sizeDp).paddingDp(paddingDp)
-}
+/**
+ * Created by Mattias on 2017-08-06.
+ */
+
+
+inline val <reified T : Any>T.TAG
+    get() = T::class.java.simpleName
 
 fun <T> nvl(value: T?, default: T): T {
     return value ?: default
+}
+
+fun icon(context: Context, icon: IIcon, color: Int = Color.WHITE, sizeDp: Int = 24, paddingDp: Int = 0): IconicsDrawable {
+    return IconicsDrawable(context).icon(icon).color(color).sizeDp(sizeDp).paddingDp(paddingDp)
 }
 
 fun TextView.hideIfEmpty(hide: Boolean) = addTextChangedListener(object : TextWatcher {
@@ -26,4 +34,3 @@ fun TextView.hideIfEmpty(hide: Boolean) = addTextChangedListener(object : TextWa
 
     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 })
-

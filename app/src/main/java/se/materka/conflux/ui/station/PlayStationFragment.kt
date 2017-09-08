@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_play_station.*
 import se.materka.conflux.R
-import se.materka.conflux.model.Station
+import se.materka.conflux.database.Station
 import se.materka.conflux.ui.player.PlayerViewModel
 
 class PlayStationFragment : Fragment() {

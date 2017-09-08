@@ -1,4 +1,4 @@
-package se.materka.conflux.custom
+package se.materka.conflux
 
 import android.app.Dialog
 import android.arch.lifecycle.LifecycleRegistry
@@ -10,7 +10,6 @@ import android.support.v7.widget.Toolbar
 import android.view.View
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
-import se.materka.conflux.R
 
 open class FullScreenDialogFragment : DialogFragment(), LifecycleRegistryOwner {
 
