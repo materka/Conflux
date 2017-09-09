@@ -1,5 +1,6 @@
 package se.materka.conflux
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
@@ -8,6 +9,7 @@ import android.os.PowerManager
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.MediaSource
@@ -26,6 +28,8 @@ import timber.log.Timber
 import java.io.IOException
 import java.util.*
 
+@SuppressLint("WifiManagerPotentialLeak")
+
 /**
  * Copyright 2017 Mattias Karlsson
 
@@ -42,8 +46,8 @@ import java.util.*
  * limitations under the License.
  */
 
-class Playback(private val service: MediaBrowserServiceCompat) : Player.EventListener,
-        ShoutcastMetadataListener, AudioManager.OnAudioFocusChangeListener {
+class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
+        ShoutcastMetadataListener {
 
     interface Callback {
         fun onPlaybackStateChanged(state: Int)
@@ -51,42 +55,41 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
         fun onMetadataReceived(metadata: ShoutcastMetadata)
     }
 
+    private val context = service.applicationContext
+
     // The volume we set the media player to when we lose audio focus, but are
     // allowed to reduce the volume instead of stopping playback.
     private val VOLUME_DUCK = 0.2f
     // The volume we set the media player when we have audio focus.
     private val VOLUME_NORMAL = 1.0f
-    // we don't have audio focus, and can't duck (play at a low volume)
-    private val AUDIO_NO_FOCUS_NO_DUCK = 0
-    // we don't have focus, but can duck (play at a low volume)
-    private val AUDIO_NO_FOCUS_CAN_DUCK = 1
-    // we have full audio focus
-    private val AUDIO_FOCUSED = 2
 
     var callback: Callback? = null
     private var currentUri: Uri? = null
-    private var playOnFocusGain: Boolean = false
     private var audioSource: MediaSource? = null
-    private var audioFocus: Int = AUDIO_NO_FOCUS_NO_DUCK
     private var audioState: Int = PlaybackStateCompat.STATE_NONE
+    private var playOnFocusGain: Boolean = false
     private val playlist by lazy {
         Stack<Uri>()
     }
 
     private val player: SimpleExoPlayer by lazy {
-        ExoPlayerFactory.newSimpleInstance(service.applicationContext,
+        ExoPlayerFactory.newSimpleInstance(context,
                 DefaultTrackSelector()).apply {
             addListener(this@Playback)
+            audioAttributes = AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.CONTENT_TYPE_MUSIC)
+                    .build()
         }
     }
 
     private val dataSourceFactory: ShoutcastDataSourceFactory by lazy {
         ShoutcastDataSourceFactory(
-                Util.getUserAgent(service.applicationContext, service.applicationContext.getString(R.string.app_name)), this)
+                Util.getUserAgent(context, context.getString(R.string.app_name)), this)
     }
 
     private val wifiLock by lazy {
-        (service.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
+        (context.getSystemService(Context.WIFI_SERVICE) as WifiManager)
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "confluxWifiLock")
     }
 
@@ -94,38 +97,11 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
         // Make sure the media player will acquire a wake-lock while
         // playing. If we don't do that, the CPU might go to sleep while the
         // song is playing, causing playback to stop.
-        (service.applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager)
+        (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "confluxWakeLock")
     }
 
-    private val audioManager: AudioManager by lazy {
-        service.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-    }
-
-    override fun onAudioFocusChange(focusChange: Int) {
-        Timber.i("onAudioFocusChange. focusChange=$focusChange")
-        if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-            // We have gained focus:
-            audioFocus = AUDIO_FOCUSED
-
-        } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS
-                || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
-                || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-            // We have lost focus. If we can duck (low playback volume), we can keep playing.
-            // Otherwise, we need to pause the playback.
-            val canDuck = focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK
-            audioFocus = if (canDuck) AUDIO_NO_FOCUS_CAN_DUCK else AUDIO_NO_FOCUS_NO_DUCK
-
-            if (audioState == PlaybackStateCompat.STATE_PLAYING && !canDuck) {
-                // If we don't have audio focus and can't duck, we save the information that
-                // we were playing, so that we can resume playback once we get the focus back.
-                playOnFocusGain = true
-            }
-        } else {
-            Timber.i("onAudioFocusChange: Ignoring unsupported focusChange: $focusChange")
-        }
-        refreshPlayerVolume()
-    }
+    private val audioFocusManager: AudioFocusManager = AudioFocusManager(context, { onAudioFocusChanged() })
 
     override fun onMetadataReceived(data: ShoutcastMetadata) {
         Timber.i("Metadata Received")
@@ -165,10 +141,10 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
             }
             Player.STATE_READY -> {
                 Timber.i("PlaybackState: Ready")
-                if (playWhenReady) {
-                    audioState = PlaybackStateCompat.STATE_PLAYING
+                audioState = if (playWhenReady) {
+                    PlaybackStateCompat.STATE_PLAYING
                 } else {
-                    audioState = PlaybackStateCompat.STATE_STOPPED
+                    PlaybackStateCompat.STATE_STOPPED
                 }
             }
             else -> audioState = PlaybackStateCompat.STATE_NONE
@@ -203,14 +179,15 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
     fun stop(releasePlayer: Boolean = false) {
         if (player.playWhenReady) {
             Timber.i("Stopping playback")
-            callback?.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
 
             // Give up Audio focus
-            abandonAudioFocus()
+            audioFocusManager.abandonAudioFocus()
 
             player.stop()
             player.playWhenReady = false
             audioSource?.releaseSource()
+
+            callback?.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
         }
 
         if (wifiLock.isHeld) {
@@ -230,65 +207,50 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
             stop()
         }
 
-        playOnFocusGain = true
-
-        requestAudioFocus()
-
-        uri?.let {
-            if (it != Uri.EMPTY) {
-                currentUri = it
-                if (playlist.isEmpty() && PlaylistHelper.isPlayList(it)) {
-                    launch(UI) {
-                        PlaylistHelper.getPlaylist(it).let { list ->
-                            if (!list.isEmpty()) {
-                                playlist.addAll(list)
-                                playUri(playlist.pop())
+        audioFocusManager.requestAudioFocus().let {
+            if (it == AudioManager.AUDIOFOCUS_GAIN) {
+                uri?.let {
+                    if (it != Uri.EMPTY) {
+                        currentUri = it
+                        if (playlist.isEmpty() && PlaylistHelper.isPlayList(it)) {
+                            launch(UI) {
+                                PlaylistHelper.getPlaylist(it).let { list ->
+                                    if (!list.isEmpty()) {
+                                        playlist.addAll(list)
+                                        playUri(playlist.pop())
+                                    }
+                                }
                             }
+                        } else {
+                            playUri(it)
                         }
                     }
-                } else {
-                    playUri(it)
                 }
             }
         }
     }
 
-    private fun requestAudioFocus() {
-        Timber.i("requestAudioFocus")
-        val result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN)
-        audioFocus = if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
-            AUDIO_FOCUSED
-        else
-            AUDIO_NO_FOCUS_NO_DUCK
-    }
-
-    private fun abandonAudioFocus() {
-        Timber.i("abandonAudioFocus")
-        if (!playOnFocusGain) {
-            if (audioManager.abandonAudioFocus(this) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                audioFocus = AUDIO_NO_FOCUS_NO_DUCK
+    private fun onAudioFocusChanged() {
+        when (audioFocusManager.audioFocus) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                player.volume = VOLUME_NORMAL
+                if (playOnFocusGain) {
+                    play()
+                    playOnFocusGain = false
+                }
             }
-        }
-    }
-
-    private fun refreshPlayerVolume() {
-        Timber.i("refreshPlayerVolume. audioFocus = $audioFocus")
-        if (audioFocus == AUDIO_NO_FOCUS_NO_DUCK) {
-            // If we don't have audio focus and can't duck, we have to pause,
-            if (audioState == PlaybackStateCompat.STATE_PLAYING) {
-                stop()
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                player.volume = VOLUME_DUCK
             }
-        } else {  // we have audio focus:
-            player.volume = if (audioFocus == AUDIO_NO_FOCUS_CAN_DUCK)
-                VOLUME_DUCK // we'll be relatively quiet
-            else
-                VOLUME_NORMAL
-
-            // If we were playing when we lost focus, we need to resume playing.
-            if (playOnFocusGain) {
-                play()
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                if (audioState == PlaybackStateCompat.STATE_PLAYING) {
+                    playOnFocusGain = true
+                    stop()
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS -> {
                 playOnFocusGain = false
+                stop()
             }
         }
     }
@@ -298,7 +260,6 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
             // This is the MediaSource representing the media to be played.
             audioSource = ExtractorMediaSource(uri,
                     dataSourceFactory, DefaultExtractorsFactory(), null, null)
-            player.audioStreamType = AudioManager.STREAM_MUSIC
             player.prepare(audioSource)
             player.playWhenReady = true
 

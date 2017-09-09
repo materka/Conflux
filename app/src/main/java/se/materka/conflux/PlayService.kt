@@ -1,9 +1,14 @@
 package se.materka.conflux
 
+import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
+import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaBrowserServiceCompat
@@ -31,7 +36,6 @@ import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
  * limitations under the License.
  */
 
-@Suppress("JoinDeclarationAndAssignment")
 class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
 
     private val SERVICE_ID: Int = 42
@@ -55,6 +59,10 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
         MediaMetadataCompat.Builder()
     }
 
+    private val notificationManager: NotificationManagerCompat by lazy {
+        NotificationManagerCompat.from(applicationContext)
+    }
+
     private val player: Playback by lazy {
         Playback(this).apply {
             callback = this@PlayService
@@ -62,6 +70,17 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
     }
 
     override fun onPlaybackStateChanged(state: Int) {
+        when (state) {
+            PlaybackStateCompat.STATE_STOPPED -> {
+                mediaSession.isActive = false
+                stopForeground(false)
+                notificationManager.notify(SERVICE_ID, buildNotification())
+            }
+            PlaybackStateCompat.STATE_PLAYING -> {
+                mediaSession.isActive = true
+                startForeground(SERVICE_ID, buildNotification())
+            }
+        }
         mediaSession.setPlaybackState(stateBuilder.setState(state, 0L, 0f).build())
     }
 
@@ -79,7 +98,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metadata.artist)
                 .build()
         mediaSession.setMetadata(mediaMetadata)
-        buildNotification()
+        notificationManager.notify(SERVICE_ID, buildNotification())
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
@@ -106,7 +125,19 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun buildNotification() {
+    private fun handlePlayRequest(uri: Uri? = null) {
+        if (uri != null) {
+            player.play(uri)
+        } else {
+            player.play()
+        }
+    }
+
+    private fun handleStopRequest() {
+        player.stop()
+    }
+
+    private fun buildNotification(): Notification {
         // Given a media session and its context (usually the component containing the session)
         // Create a NotificationCompat.Builder
 
@@ -115,70 +146,61 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
         val mediaMetadata: MediaMetadataCompat? = controller.metadata
         val description: MediaDescriptionCompat? = mediaMetadata?.description
 
-        val builder: NotificationCompat.Builder = NotificationCompat.Builder(applicationContext, "miscellaneous")
+        return NotificationCompat.Builder(applicationContext, "miscellaneous").apply {
+            color = ContextCompat.getColor(this@PlayService, R.color.primary_dark)
 
-        builder
-                // Add the metadata for the currently playing track
-                .setContentTitle(description?.title)
-                .setContentText(description?.subtitle)
-                .setSubText(description?.description)
-                .setLargeIcon(description?.iconBitmap)
-                .setSmallIcon(R.drawable.md_play)
-                .setColor(ContextCompat.getColor(this, R.color.primary_dark))
-                // Enable launching the player by clicking the notification
-                .setContentIntent(controller.sessionActivity)
-                // Stop the service when the notification is swiped away
-                .setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
-                        PlaybackStateCompat.ACTION_STOP))
-                // Make the transport controls visible on the lockscreen
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                // Add a pause button
-                .addAction(
-                        if (!mediaSession.isActive)
-                            NotificationCompat.Action(
-                                    R.drawable.md_play, "PLAY",
-                                    MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
-                                            PlaybackStateCompat.ACTION_PLAY)
-                            )
-                        else
-                            NotificationCompat.Action(
-                                    R.drawable.md_pause, "PAUS",
-                                    MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
-                                            PlaybackStateCompat.ACTION_STOP)
-                            )
-                )
-
-                // Take advantage of MediaStyle features
-                .setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
-                        .setMediaSession(mediaSession.sessionToken)
-                        .setShowActionsInCompactView(0)
-                        .setShowCancelButton(true)
-                        .setCancelButtonIntent(
+            // Add the metadata for the currently playing track
+            setContentTitle(description?.title)
+            setContentText(description?.subtitle)
+            setSubText(description?.description)
+            setLargeIcon(description?.iconBitmap)
+            setSmallIcon(R.drawable.md_play)
+            // Enable launching the player by clicking the notification
+            setContentIntent(controller.sessionActivity)
+            // Stop the service when the notification is swiped away
+            setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
+                    PlaybackStateCompat.ACTION_STOP))
+            // Make the transport controls visible on the lockscreen
+            setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            // Add a pause button
+            addAction(
+                    if (!mediaSession.isActive)
+                        NotificationCompat.Action(
+                                R.drawable.md_play, "PLAY",
                                 MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
-                                        PlaybackStateCompat.ACTION_STOP)))
-        startForeground(SERVICE_ID, builder.build())
+                                        PlaybackStateCompat.ACTION_PLAY)
+                        )
+                    else
+                        NotificationCompat.Action(
+                                R.drawable.md_pause, "PAUS",
+                                MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
+                                        PlaybackStateCompat.ACTION_STOP)
+                        )
+            )
+
+            // Take advantage of MediaStyle features
+            setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
+                    .setMediaSession(mediaSession.sessionToken)
+                    .setShowActionsInCompactView(0)
+                    .setShowCancelButton(true)
+                    .setCancelButtonIntent(
+                            MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
+                                    PlaybackStateCompat.ACTION_STOP)))
+        }.build()
     }
 
     private inner class MediaSessionCallback : MediaSessionCompat.Callback() {
 
         override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
-            uri?.let {
-                mediaSession.isActive = true
-                player.play(uri)
-                buildNotification()
-            }
+            handlePlayRequest(uri)
         }
 
         override fun onPlay() {
-            mediaSession.isActive = true
-            player.play()
-            buildNotification()
+            handlePlayRequest()
         }
 
         override fun onStop() {
-            mediaSession.isActive = false
-            player.stop()
-            buildNotification()
+            handleStopRequest()
         }
     }
 
