@@ -1,19 +1,3 @@
-/**
- * Copyright 2016 Mattias Karlsson
-
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
-
- * http://www.apache.org/licenses/LICENSE-2.0
-
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package se.materka.conflux
 
 import android.content.Intent
@@ -29,8 +13,23 @@ import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import se.materka.conflux.utils.TAG
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
+
+/**
+ * Copyright 2017 Mattias Karlsson
+
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+
+ * http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 @Suppress("JoinDeclarationAndAssignment")
 class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
@@ -38,7 +37,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
     private val SERVICE_ID: Int = 42
 
     private val mediaSession: MediaSessionCompat by lazy {
-        MediaSessionCompat(this@PlayService, TAG).apply {
+        MediaSessionCompat(this@PlayService, PlayService::class.java.name).apply {
             setPlaybackState(stateBuilder.build())
             setCallback(MediaSessionCallback())
             setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
@@ -74,12 +73,12 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
         mediaSession.setPlaybackState(state)
     }
 
-    override fun onMetadataReceived(data: ShoutcastMetadata) {
-        val metadata: MediaMetadataCompat = metadataBuilder
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, data.song)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, data.artist)
+    override fun onMetadataReceived(metadata: ShoutcastMetadata) {
+        val mediaMetadata: MediaMetadataCompat = metadataBuilder
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, metadata.song)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metadata.artist)
                 .build()
-        mediaSession.setMetadata(metadata)
+        mediaSession.setMetadata(mediaMetadata)
         buildNotification()
     }
 

@@ -7,7 +7,6 @@ import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
@@ -20,12 +19,28 @@ import com.google.android.exoplayer2.util.Util
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import se.materka.conflux.utils.PlaylistHelper
-import se.materka.conflux.utils.TAG
 import se.materka.exoplayershoutcastdatasource.ShoutcastDataSourceFactory
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadataListener
+import timber.log.Timber
 import java.io.IOException
 import java.util.*
+
+/**
+ * Copyright 2017 Mattias Karlsson
+
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+
+ * http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 class Playback(private val service: MediaBrowserServiceCompat) : Player.EventListener,
         ShoutcastMetadataListener, AudioManager.OnAudioFocusChangeListener {
@@ -60,8 +75,7 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
 
     private val player: SimpleExoPlayer by lazy {
         ExoPlayerFactory.newSimpleInstance(service.applicationContext,
-                DefaultTrackSelector(),
-                DefaultLoadControl()).apply {
+                DefaultTrackSelector()).apply {
             addListener(this@Playback)
         }
     }
@@ -89,7 +103,7 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
     }
 
     override fun onAudioFocusChange(focusChange: Int) {
-        Log.d(TAG, "onAudioFocusChange. focusChange=" + focusChange)
+        Timber.i("onAudioFocusChange. focusChange=$focusChange")
         if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
             // We have gained focus:
             audioFocus = AUDIO_FOCUSED
@@ -108,23 +122,23 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
                 playOnFocusGain = true
             }
         } else {
-            Log.e(TAG, "onAudioFocusChange: Ignoring unsupported focusChange: " + focusChange)
+            Timber.i("onAudioFocusChange: Ignoring unsupported focusChange: $focusChange")
         }
         refreshPlayerVolume()
     }
 
     override fun onMetadataReceived(data: ShoutcastMetadata) {
-        Log.d(TAG, "Metadata Received")
+        Timber.i("Metadata Received")
         callback?.onMetadataReceived(data)
     }
 
     override fun onPlayerError(error: ExoPlaybackException?) {
+        Timber.e(error)
         if (!playlist.isEmpty()) {
             play(playlist.pop())
         } else {
             callback?.onError(PlaybackStateCompat.STATE_ERROR, "No working URLs found")
         }
-        Log.d(TAG, "PlaybackError: ${error?.cause.toString()}")
         if (error?.sourceException is HttpDataSource.InvalidResponseCodeException) {
             val responseCode = (error.sourceException as HttpDataSource.InvalidResponseCodeException).responseCode
             when (responseCode) {
@@ -137,20 +151,20 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
 
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
         when (playbackState) {
-            ExoPlayer.STATE_BUFFERING -> {
-                Log.d(TAG, "PlaybackState: Buffering")
+            Player.STATE_BUFFERING -> {
+                Timber.i("PlaybackState: Buffering")
                 audioState = PlaybackStateCompat.STATE_BUFFERING
             }
-            ExoPlayer.STATE_ENDED -> {
-                Log.d(TAG, "PlaybackState: Ended")
+            Player.STATE_ENDED -> {
+                Timber.i("PlaybackState: Ended")
                 audioState = PlaybackStateCompat.STATE_STOPPED
             }
-            ExoPlayer.STATE_IDLE -> {
-                Log.d(TAG, "PlaybackState: Idle")
+            Player.STATE_IDLE -> {
+                Timber.i("PlaybackState: Idle")
                 audioState = PlaybackStateCompat.STATE_NONE
             }
-            ExoPlayer.STATE_READY -> {
-                Log.d(TAG, "PlaybackState: Ready")
+            Player.STATE_READY -> {
+                Timber.i("PlaybackState: Ready")
                 if (playWhenReady) {
                     audioState = PlaybackStateCompat.STATE_PLAYING
                 } else {
@@ -163,32 +177,32 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
     }
 
     override fun onLoadingChanged(isLoading: Boolean) {
-        Log.d(TAG, "Loading: $isLoading")
+        Timber.i("Loading: $isLoading")
     }
 
     override fun onPositionDiscontinuity() {
-        Log.d(TAG, "onPositionDiscontinuity: discontinuity detected")
+        Timber.i("onPositionDiscontinuity: discontinuity detected")
     }
 
     override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
-        Log.d(TAG, "onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
+        Timber.i("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
     }
 
     override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-        Log.d(TAG, "onTracksChanged")
+        Timber.i("onTracksChanged")
     }
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-        Log.d(TAG, "onPlaybackParameterChanged")
+        Timber.i("onPlaybackParameterChanged")
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
-        Log.d(TAG, "onRepeatModeChanged")
+        Timber.i("onRepeatModeChanged")
     }
 
     fun stop(releasePlayer: Boolean = false) {
         if (player.playWhenReady) {
-            Log.d(TAG, "Stopping playback")
+            Timber.i("Stopping playback")
             callback?.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
 
             // Give up Audio focus
@@ -240,7 +254,7 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
     }
 
     private fun requestAudioFocus() {
-        Log.d(TAG, "requestAudioFocus")
+        Timber.i("requestAudioFocus")
         val result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN)
         audioFocus = if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
@@ -250,7 +264,7 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
     }
 
     private fun abandonAudioFocus() {
-        Log.d(TAG, "abandonAudioFocus")
+        Timber.i("abandonAudioFocus")
         if (!playOnFocusGain) {
             if (audioManager.abandonAudioFocus(this) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 audioFocus = AUDIO_NO_FOCUS_NO_DUCK
@@ -259,7 +273,7 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
     }
 
     private fun refreshPlayerVolume() {
-        Log.d(TAG, "refreshPlayerVolume. audioFocus = $audioFocus")
+        Timber.i("refreshPlayerVolume. audioFocus = $audioFocus")
         if (audioFocus == AUDIO_NO_FOCUS_NO_DUCK) {
             // If we don't have audio focus and can't duck, we have to pause,
             if (audioState == PlaybackStateCompat.STATE_PLAYING) {
@@ -297,9 +311,9 @@ class Playback(private val service: MediaBrowserServiceCompat) : Player.EventLis
 
             callback?.onPlaybackStateChanged(PlaybackStateCompat.STATE_BUFFERING)
 
-        } catch (ioException: IOException) {
-            Log.e(TAG, "Exception playing song", ioException)
-            callback?.onError(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, ioException.message ?: "Unknown error")
+        } catch (e: IOException) {
+            Timber.e(e)
+            callback?.onError(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, e.message ?: "Unknown error")
         }
     }
 }

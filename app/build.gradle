@@ -2,6 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'nebula.lint'
+
+gradleLint {
+    alwaysRun = false
+    rules  = ['dependency-parentheses']
+    criticalRules = ['unused-dependency'] // <-- this will fail the build in the event of a violation
+}
+
 android {
     compileSdkVersion 26
     buildToolsVersion '26.0.1'
@@ -15,15 +23,21 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
+        debug{
+            debuggable true
+        }
         release {
+            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     dataBinding {
         enabled = true
     }
 }
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -36,6 +50,9 @@ dependencies {
     implementation "com.android.support:recyclerview-v7:$support_version"
     implementation "com.android.support:cardview-v7:$support_version"
     implementation "com.android.support:design:$support_version"
+
+    // Timber
+    implementation 'com.jakewharton.timber:timber:4.5.1'
 
     // Rxjava
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
@@ -66,13 +83,9 @@ dependencies {
 
     // Anko
     implementation 'org.jetbrains.anko:anko:0.10.1'
+
     kapt "com.android.databinding:compiler:$gradle_build_tools_version"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation ('com.github.materka:exoplayerShoutcastDataSource:-SNAPSHOT@aar') {
-        transitive=true
-    }
+    implementation 'com.github.materka:exoplayer-shoutcast-datasource:-SNAPSHOT'
     implementation 'com.google.android.exoplayer:exoplayer-core:r2.5.0'
-}
-repositories {
-    mavenCentral()
 }

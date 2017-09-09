@@ -1,5 +1,14 @@
+package se.materka.conflux.utils
+
+import android.net.Uri
+import kotlinx.coroutines.experimental.CommonPool
+import java.io.IOException
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
+
 /**
- * Copyright 2016 Mattias Karlsson
+ * Copyright 2017 Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +22,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package se.materka.conflux.utils
-
-import android.net.Uri
-import kotlinx.coroutines.experimental.CommonPool
-import java.io.IOException
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 object PlaylistHelper {
 

@@ -18,7 +18,6 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
-import android.util.Log
 import android.view.MenuItem
 import com.mikepenz.community_material_typeface_library.CommunityMaterial.Icon
 import com.mikepenz.iconics.IconicsDrawable
@@ -27,14 +26,30 @@ import com.mikepenz.iconics.typeface.IIcon
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.jetbrains.anko.itemsSequence
-import se.materka.conflux.R
-import se.materka.conflux.utils.TAG
 import se.materka.conflux.PlayService
-import se.materka.conflux.ui.player.PlayerViewModel
-import se.materka.conflux.ui.station.PlayStationFragment
+import se.materka.conflux.R
 import se.materka.conflux.ui.browse.BrowseFragment
 import se.materka.conflux.ui.browse.BrowseViewModel
+import se.materka.conflux.ui.player.PlayerViewModel
+import se.materka.conflux.ui.station.PlayStationFragment
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
+import timber.log.Timber
+
+/**
+ * Copyright 2017 Mattias Karlsson
+
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+
+ * http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
     private lateinit var mediaBrowser: MediaBrowserCompat
@@ -68,13 +83,13 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
         }
 
         override fun onConnectionFailed() {
-            Log.d(TAG, "connection failed")
+            Timber.e("connection failed")
         }
     }
 
     private val controllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
         override fun onMetadataChanged(data: MediaMetadataCompat?) {
-            Log.d(TAG, "New metadata")
+            Timber.i("New metadata")
             val metadata = ShoutcastMetadata(
                     artist = data?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST),
                     song = data?.getString(MediaMetadataCompat.METADATA_KEY_TITLE),
@@ -128,12 +143,10 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
     }
 
     fun selectDrawerItem(menuItem: MenuItem) {
-        // Create a new fragment and specify the fragment to show based on nav item clicked
         var fragment: Fragment? = null
-        val fragmentClass: Class<*>
-        when (menuItem.itemId) {
-            R.id.nav_play_station -> fragmentClass = PlayStationFragment::class.java
-            else -> fragmentClass = BrowseFragment::class.java
+        val fragmentClass: Class<*> = when (menuItem.itemId) {
+            R.id.nav_play_station -> PlayStationFragment::class.java
+            else -> BrowseFragment::class.java
         }
 
         try {

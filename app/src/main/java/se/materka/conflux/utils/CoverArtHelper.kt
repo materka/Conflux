@@ -1,5 +1,15 @@
+package se.materka.conflux.utils
+
+import kaaes.spotify.webapi.android.SpotifyApi
+import kaaes.spotify.webapi.android.SpotifyCallback
+import kaaes.spotify.webapi.android.SpotifyError
+import kaaes.spotify.webapi.android.models.ArtistsPager
+import retrofit.client.Response
+import timber.log.Timber
+import java.net.URL
+
 /**
- * Copyright 2016 Mattias Karlsson
+ * Copyright 2017 Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +24,13 @@
  * limitations under the License.
  */
 
-package se.materka.conflux.utils
-
-import android.util.Log
-import kaaes.spotify.webapi.android.SpotifyApi
-import kaaes.spotify.webapi.android.SpotifyCallback
-import kaaes.spotify.webapi.android.SpotifyError
-import kaaes.spotify.webapi.android.models.ArtistsPager
-import retrofit.client.Response
-import java.net.URL
-
 class CoverArtHelper {
-    private val TAG = CoverArtHelper::class.java.name
     private lateinit var callback: (URL?) -> Unit
 
 
     private val searchArtists: SpotifyCallback<ArtistsPager> = object : SpotifyCallback<ArtistsPager>() {
         override fun success(artist: ArtistsPager?, response: Response?) {
-            val items = artist?.artists?.items?.let { artists ->
+            artist?.artists?.items?.let { artists ->
                 if (!artists.isEmpty()) {
                     artists.sortedWith(compareBy { it.popularity })
                     val images = artists[0].images
@@ -45,7 +44,7 @@ class CoverArtHelper {
         }
 
         override fun failure(error: SpotifyError?) {
-            Log.d(TAG, error?.message)
+            Timber.d(error)
             callback.invoke(null)
         }
     }
