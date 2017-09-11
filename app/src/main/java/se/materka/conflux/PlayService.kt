@@ -1,10 +1,11 @@
 package se.materka.conflux
 
-import android.annotation.SuppressLint
 import android.app.Notification
-import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.NotificationCompat
@@ -39,6 +40,7 @@ import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
 
     private val SERVICE_ID: Int = 42
+    private val DEFAULT_CHANNEL_ID: String = "miscellaneous"
 
     private val mediaSession: MediaSessionCompat by lazy {
         MediaSessionCompat(this@PlayService, PlayService::class.java.name).apply {
@@ -63,6 +65,10 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
         NotificationManagerCompat.from(applicationContext)
     }
 
+    private val audioBecomingNoisyIntentFilter: IntentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+
+    private val audioBecomingNoisyReceiver: BecomingNoisyReceiver = BecomingNoisyReceiver()
+
     private val player: Playback by lazy {
         Playback(this).apply {
             callback = this@PlayService
@@ -70,17 +76,6 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
     }
 
     override fun onPlaybackStateChanged(state: Int) {
-        when (state) {
-            PlaybackStateCompat.STATE_STOPPED -> {
-                mediaSession.isActive = false
-                stopForeground(false)
-                notificationManager.notify(SERVICE_ID, buildNotification())
-            }
-            PlaybackStateCompat.STATE_PLAYING -> {
-                mediaSession.isActive = true
-                startForeground(SERVICE_ID, buildNotification())
-            }
-        }
         mediaSession.setPlaybackState(stateBuilder.setState(state, 0L, 0f).build())
     }
 
@@ -126,43 +121,42 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
     }
 
     private fun handlePlayRequest(uri: Uri? = null) {
+        registerReceiver(audioBecomingNoisyReceiver, audioBecomingNoisyIntentFilter)
         if (uri != null) {
             player.play(uri)
         } else {
             player.play()
         }
+        mediaSession.isActive = true
+        startForeground(SERVICE_ID, buildNotification())
     }
 
     private fun handleStopRequest() {
         player.stop()
+        mediaSession.isActive = false
+        unregisterReceiver(audioBecomingNoisyReceiver)
+        stopForeground(false)
+        notificationManager.notify(SERVICE_ID, buildNotification())
     }
 
     private fun buildNotification(): Notification {
-        // Given a media session and its context (usually the component containing the session)
-        // Create a NotificationCompat.Builder
-
-        // Get the session's metadata
         val controller: MediaControllerCompat = mediaSession.controller
         val mediaMetadata: MediaMetadataCompat? = controller.metadata
         val description: MediaDescriptionCompat? = mediaMetadata?.description
 
-        return NotificationCompat.Builder(applicationContext, "miscellaneous").apply {
+        return NotificationCompat.Builder(this, DEFAULT_CHANNEL_ID).apply {
             color = ContextCompat.getColor(this@PlayService, R.color.primary_dark)
 
-            // Add the metadata for the currently playing track
             setContentTitle(description?.title)
             setContentText(description?.subtitle)
             setSubText(description?.description)
             setLargeIcon(description?.iconBitmap)
             setSmallIcon(R.drawable.md_play)
-            // Enable launching the player by clicking the notification
+            setOngoing(mediaSession.isActive)
             setContentIntent(controller.sessionActivity)
-            // Stop the service when the notification is swiped away
             setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
                     PlaybackStateCompat.ACTION_STOP))
-            // Make the transport controls visible on the lockscreen
             setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            // Add a pause button
             addAction(
                     if (!mediaSession.isActive)
                         NotificationCompat.Action(
@@ -172,20 +166,17 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
                         )
                     else
                         NotificationCompat.Action(
-                                R.drawable.md_pause, "PAUS",
+                                R.drawable.md_stop, "STOP",
                                 MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
                                         PlaybackStateCompat.ACTION_STOP)
                         )
             )
-
-            // Take advantage of MediaStyle features
             setStyle(android.support.v4.media.app.NotificationCompat.MediaStyle()
                     .setMediaSession(mediaSession.sessionToken)
                     .setShowActionsInCompactView(0)
-                    .setShowCancelButton(true)
-                    .setCancelButtonIntent(
-                            MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
-                                    PlaybackStateCompat.ACTION_STOP)))
+                    .setShowCancelButton(!mediaSession.isActive)
+                    .setCancelButtonIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,
+                            PlaybackStateCompat.ACTION_STOP)))
         }.build()
     }
 
@@ -199,9 +190,32 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
             handlePlayRequest()
         }
 
-        override fun onStop() {
+        override fun onPause() {
             handleStopRequest()
+        }
+
+        override fun onStop() {
+            /**
+             * Some extra sugar for handling pre-lollipop.
+             * Service notification cant not be set dismissible if service is started in foreground.
+             * (It can only be removed using stopForeground(true))
+             * So we use Media Style cancel button to send ACTION_STOP only if the media session is inactive.
+             * Which means the playback has already been stopped once, and this second call indicate the user
+             * wants to get rid of the notification.
+             */
+            if (!mediaSession.isActive) {
+                stopForeground(true)
+            } else {
+                handleStopRequest()
+            }
         }
     }
 
+    private inner class BecomingNoisyReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY == intent.action) {
+                handleStopRequest()
+            }
+        }
+    }
 }

@@ -7,6 +7,7 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.ComponentName
 import android.content.Context
 import android.content.res.Configuration
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
@@ -168,6 +169,8 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        volumeControlStream = AudioManager.STREAM_MUSIC
+
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar as Toolbar)
         setupDrawerContent()

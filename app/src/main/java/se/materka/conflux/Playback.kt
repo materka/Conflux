@@ -101,7 +101,7 @@ class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "confluxWakeLock")
     }
 
-    private val audioFocusManager: AudioFocusManager = AudioFocusManager(context, { onAudioFocusChanged() })
+    private val audioFocusManager: AudioFocusManager = AudioFocusManager(service, { onAudioFocusChanged() })
 
     override fun onMetadataReceived(data: ShoutcastMetadata) {
         Timber.i("Metadata Received")
