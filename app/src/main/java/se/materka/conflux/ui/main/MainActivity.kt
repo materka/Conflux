@@ -26,6 +26,8 @@ import com.mikepenz.iconics.context.IconicsContextWrapper
 import com.mikepenz.iconics.typeface.IIcon
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.itemsSequence
 import se.materka.conflux.PlayService
 import se.materka.conflux.R
@@ -33,6 +35,7 @@ import se.materka.conflux.ui.browse.BrowseFragment
 import se.materka.conflux.ui.browse.BrowseViewModel
 import se.materka.conflux.ui.player.PlayerViewModel
 import se.materka.conflux.ui.station.PlayStationFragment
+import se.materka.conflux.utils.ArtistImageService
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import timber.log.Timber
 
@@ -93,7 +96,7 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
             Timber.i("New metadata")
             val metadata = ShoutcastMetadata(
                     artist = data?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST),
-                    song = data?.getString(MediaMetadataCompat.METADATA_KEY_TITLE),
+                    title = data?.getString(MediaMetadataCompat.METADATA_KEY_TITLE),
                     show = null,
                     channels = null,
                     station = null,
@@ -101,6 +104,13 @@ class MainActivity : AppCompatActivity(), LifecycleRegistryOwner {
                     genre = null,
                     url = null)
             playerViewModel.setMetadata(metadata)
+            launch(UI) {
+                ArtistImageService().getArtwork(metadata.artist, this@MainActivity) {
+                    it?.let {
+                        playerViewModel.setCover(it)
+                    }
+                }
+            }
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {

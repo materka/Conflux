@@ -35,15 +35,15 @@
             android:paddingStart="16dp">
 
             <TextView
-                android:id="@+id/text_song"
+                android:id="@+id/text_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:text="@{metadata.song}"
+                android:text="@{metadata.title}"
                 android:textAllCaps="true"
                 android:textColor="@android:color/white"
-                android:transitionName="text_song"
+                android:transitionName="text_title"
                 android:visibility="gone" />
 
             <TextView

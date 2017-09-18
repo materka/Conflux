@@ -8,6 +8,7 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_player_compact.*
 import se.materka.conflux.MetadataBinding
 import se.materka.conflux.databinding.FragmentPlayerCompactBinding
@@ -45,7 +46,7 @@ class PlayerCompactFragment : LifecycleFragment() {
         val binding = FragmentPlayerCompactBinding.inflate(inflater, container, false)
         playerViewModel.metadata.observe(this, Observer {
             metadata.setArtist(it?.artist)
-            metadata.setSong(it?.song)
+            metadata.setTitle(it?.title)
             metadata.setShow(it?.show)
         })
 
@@ -64,13 +65,17 @@ class PlayerCompactFragment : LifecycleFragment() {
             }
         })
 
+        playerViewModel.cover.observe(this, Observer {
+            Picasso.with(activity).load(it).into(image_cover)
+        })
+
         binding.metadata = metadata
         return binding.root
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         text_artist.hideIfEmpty(true)
-        text_song.hideIfEmpty(true)
+        text_title.hideIfEmpty(true)
         text_show.hideIfEmpty(true)
         btn_toggle_play.showPlay()
     }

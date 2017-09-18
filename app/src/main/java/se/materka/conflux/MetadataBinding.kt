@@ -21,7 +21,7 @@ import android.databinding.Bindable
 
 class MetadataBinding : BaseObservable() {
     private var artist: String? = null
-    private var song: String? = null
+    private var title: String? = null
     private var show: String? = null
 
     @Bindable
@@ -35,8 +35,8 @@ class MetadataBinding : BaseObservable() {
     }
 
     @Bindable
-    fun getSong(): String? {
-        return this.song
+    fun getTitle(): String? {
+        return this.title
     }
 
     fun setArtist(artist: String?) {
@@ -49,14 +49,14 @@ class MetadataBinding : BaseObservable() {
         notifyPropertyChanged(BR.show)
     }
 
-    fun setSong(song: String?) {
-        this.song = song
-        notifyPropertyChanged(BR.song)
+    fun setTitle(title: String?) {
+        this.title = title
+        notifyPropertyChanged(BR.title)
     }
 
     fun clear() {
         setArtist(null)
-        setSong(null)
+        setTitle(null)
         setShow(null)
     }
 }

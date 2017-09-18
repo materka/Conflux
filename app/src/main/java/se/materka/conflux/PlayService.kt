@@ -89,7 +89,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
 
     override fun onMetadataReceived(metadata: ShoutcastMetadata) {
         val mediaMetadata: MediaMetadataCompat = metadataBuilder
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, metadata.song)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, metadata.title)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metadata.artist)
                 .build()
         mediaSession.setMetadata(mediaMetadata)
@@ -111,6 +111,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
 
     override fun onDestroy() {
         player.stop(true)
+        unregisterReceiver(audioBecomingNoisyReceiver)
         super.onDestroy()
 
     }
@@ -151,7 +152,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
             setContentText(description?.subtitle)
             setSubText(description?.description)
             setLargeIcon(description?.iconBitmap)
-            setSmallIcon(R.drawable.md_play)
+            setSmallIcon(R.drawable.md_streaming_radio)
             setOngoing(mediaSession.isActive)
             setContentIntent(controller.sessionActivity)
             setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(applicationContext,

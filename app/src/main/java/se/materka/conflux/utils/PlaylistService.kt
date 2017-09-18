@@ -2,10 +2,10 @@ package se.materka.conflux.utils
 
 import android.net.Uri
 import kotlinx.coroutines.experimental.CommonPool
-import java.io.IOException
+import kotlinx.coroutines.experimental.launch
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -23,22 +23,23 @@ import java.net.URL
  * limitations under the License.
  */
 
-object PlaylistHelper {
+object PlaylistService {
 
     suspend fun getPlaylist(uri: Uri): MutableList<Uri> {
         val playlist: MutableList<Uri> = mutableListOf()
 
         if (!isPlayList(uri)) return playlist
 
-        kotlinx.coroutines.experimental.launch(CommonPool) {
-            var inputStream: InputStream? = null
-            try {
-                val url = URL(uri.toString())
-                val conn = (url.openConnection() as HttpURLConnection).apply {
-                    requestMethod = "GET"
-                    connect()
-                }
-                inputStream = conn.inputStream?.apply {
+        launch(CommonPool) {
+            val request: Request = Request.Builder()
+                    .url(uri.toString())
+                    .get()
+                    .build()
+
+            val response = OkHttpClient().newCall(request).execute()
+            val stream: InputStream? = response.body()?.byteStream()
+            stream?.use { stream ->
+                stream.apply {
                     bufferedReader().use {
                         it.readLines().forEach { line ->
                             line.trim().let {
@@ -56,10 +57,6 @@ object PlaylistHelper {
                         }
                     }
                 }
-            } catch (e: IOException) {
-                // TODO: Handle exception?
-            } finally {
-                inputStream?.close()
             }
         }.join()
         return playlist

@@ -1,12 +1,23 @@
 package se.materka.conflux.utils
 
+import android.content.Context
+import android.net.Uri
 import kaaes.spotify.webapi.android.SpotifyApi
 import kaaes.spotify.webapi.android.SpotifyCallback
 import kaaes.spotify.webapi.android.SpotifyError
 import kaaes.spotify.webapi.android.models.ArtistsPager
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
+import okhttp3.Credentials
+import okhttp3.FormBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
 import retrofit.client.Response
+import se.materka.conflux.R
 import timber.log.Timber
-import java.net.URL
+
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -24,8 +35,8 @@ import java.net.URL
  * limitations under the License.
  */
 
-class CoverArtHelper {
-    private lateinit var callback: (URL?) -> Unit
+class ArtistImageService {
+    private lateinit var callback: (Uri?) -> Unit
 
 
     private val searchArtists: SpotifyCallback<ArtistsPager> = object : SpotifyCallback<ArtistsPager>() {
@@ -35,7 +46,7 @@ class CoverArtHelper {
                     artists.sortedWith(compareBy { it.popularity })
                     val images = artists[0].images
                     if (!images.isEmpty()) {
-                        callback.invoke(URL(images[0].url))
+                        callback.invoke(Uri.parse(images[0].url))
                     } else {
                         callback.invoke(null)
                     }
@@ -49,12 +60,28 @@ class CoverArtHelper {
         }
     }
 
-    fun getArtwork(artist: String?, callback: (URL?) -> Unit) {
+    suspend fun getArtwork(artist: String?, context: Context, callback: (Uri?) -> Unit) {
         this.callback = callback
         try {
-            SpotifyApi().service.searchArtists(artist, searchArtists)
+            val api = SpotifyApi()
+            launch(CommonPool) {
+                val token = getAccessToken(context)
+                api.setAccessToken(token)
+            }.join()
+            api.service.searchArtists(artist, searchArtists)
         } catch (e: Exception) {
-
+            Timber.e(e)
         }
+    }
+
+    private fun getAccessToken(context: Context): String {
+        val auth = Credentials.basic(context.resources.getString(R.string.spotify_client_id), context.resources.getString(R.string.spotify_client_secret))
+        val request = Request.Builder()
+                .url("https://accounts.spotify.com/api/token")
+                .header("Authorization", auth)
+                .post(FormBody.Builder().add("grant_type", "client_credentials").build())
+                .build()
+        val response = OkHttpClient().newCall(request).execute()
+        return JSONObject(response.body()?.string())["access_token"].toString()
     }
 }

@@ -92,6 +92,6 @@ dependencies {
 
     kapt "com.android.databinding:compiler:$gradle_build_tools_version"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'com.github.materka:exoplayer-shoutcast-datasource:-SNAPSHOT'
+    implementation 'com.github.materka:exoplayer-shoutcast-datasource:fc14eba3b4'
     implementation 'com.google.android.exoplayer:exoplayer-core:r2.5.0'
 }

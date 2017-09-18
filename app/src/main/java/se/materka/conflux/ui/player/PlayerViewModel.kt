@@ -3,6 +3,7 @@ package se.materka.conflux.ui.player
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MutableLiveData
+import android.net.Uri
 import se.materka.conflux.database.Station
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
@@ -27,9 +28,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val currentStation = MutableLiveData<Station>()
 
     val metadata = MutableLiveData<ShoutcastMetadata>()
-        get() = field
+    val cover = MutableLiveData<Uri>()
     val isPlaying = MutableLiveData<Boolean>()
-        get() = field
 
     fun play(station: Station?) {
         currentStation.postValue(station)
@@ -37,6 +37,10 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setMetadata(metadata: ShoutcastMetadata) {
         this.metadata.value = metadata
+    }
+
+    fun setCover(uri: Uri) {
+        this.cover.value = uri
     }
 
     fun isPlaying(playing: Boolean) {
