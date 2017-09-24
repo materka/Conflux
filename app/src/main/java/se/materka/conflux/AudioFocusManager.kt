@@ -7,7 +7,6 @@ import android.media.AudioManager
 import android.os.Build
 import timber.log.Timber
 
-
 /**
  * Copyright 2017 Mattias Karlsson
 

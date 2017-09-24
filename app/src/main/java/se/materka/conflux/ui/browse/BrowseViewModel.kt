@@ -4,10 +4,11 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import org.jetbrains.anko.doAsync
-import se.materka.conflux.database.AppDatabase
-import se.materka.conflux.database.StationDao
-import se.materka.conflux.database.Station
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
+import se.materka.conflux.AppDatabase
+import se.materka.conflux.domain.StationDao
+import se.materka.conflux.domain.Station
 
 
 /**
@@ -46,7 +47,7 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
     fun saveStation(): LiveData<Long> {
         val result = MutableLiveData<Long>()
         selected.value?.let { s ->
-            doAsync {
+            async(UI) {
                 val id = dao.insert(s)
                 if (id > -1) {
                     selected.postValue(dao.get(id))
@@ -65,7 +66,7 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
     fun deleteStation(): LiveData<Boolean> {
         val result = MutableLiveData<Boolean>()
         selected.value?.let { station ->
-            doAsync {
+            async(UI) {
                 if (dao.delete(station) == 1) {
                     station.id = null
                     selected.postValue(station)
@@ -81,7 +82,7 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
     fun updateStation(): LiveData<Boolean> {
         val result = MutableLiveData<Boolean>()
         selected.value?.let { station ->
-            doAsync {
+            async(UI) {
                 result.postValue(dao.update(station) == 1)
             }
         }

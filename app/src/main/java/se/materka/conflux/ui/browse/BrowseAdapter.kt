@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.station_list_item_layout.view.*
 import se.materka.conflux.R
-import se.materka.conflux.database.Station
+import se.materka.conflux.domain.Station
 
 /**
  * Copyright 2017 Mattias Karlsson

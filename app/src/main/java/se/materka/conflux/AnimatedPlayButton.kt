@@ -4,7 +4,6 @@ import android.content.Context
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.util.AttributeSet
 import android.widget.ImageButton
-import se.materka.conflux.R
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -50,7 +49,7 @@ class AnimatedPlayButton : ImageButton {
     }
 
     fun showPlay() {
-        if(!isShowingPlay) {
+        if (!isShowingPlay) {
             toggle()
         }
     }

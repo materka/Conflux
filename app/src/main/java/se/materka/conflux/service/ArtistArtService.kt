@@ -1,21 +1,20 @@
-package se.materka.conflux.utils
+package se.materka.conflux.service
 
-import android.content.Context
 import android.net.Uri
 import kaaes.spotify.webapi.android.SpotifyApi
 import kaaes.spotify.webapi.android.SpotifyCallback
 import kaaes.spotify.webapi.android.SpotifyError
 import kaaes.spotify.webapi.android.models.ArtistsPager
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.run
 import okhttp3.Credentials
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.jetbrains.anko.coroutines.experimental.bg
 import org.json.JSONObject
 import retrofit.client.Response
-import se.materka.conflux.R
 import timber.log.Timber
 
 
@@ -35,9 +34,18 @@ import timber.log.Timber
  * limitations under the License.
  */
 
-class ArtistImageService {
+class ArtistArtService {
+    private var userName: String? = null
+    private var password: String? = null
+
     private lateinit var callback: (Uri?) -> Unit
 
+
+    fun setApiCredentials(userName: String, password: String): ArtistArtService {
+        this.userName = userName
+        this.password = password
+        return this
+    }
 
     private val searchArtists: SpotifyCallback<ArtistsPager> = object : SpotifyCallback<ArtistsPager>() {
         override fun success(artist: ArtistsPager?, response: Response?) {
@@ -60,22 +68,22 @@ class ArtistImageService {
         }
     }
 
-    suspend fun getArtwork(artist: String?, context: Context, callback: (Uri?) -> Unit) {
+    fun getArt(artist: String?, callback: (Uri?) -> Unit) {
         this.callback = callback
         try {
-            val api = SpotifyApi()
-            launch(CommonPool) {
-                val token = getAccessToken(context)
-                api.setAccessToken(token)
-            }.join()
-            api.service.searchArtists(artist, searchArtists)
+            async(CommonPool) {
+                val api = SpotifyApi()
+                val token = bg { getAccessToken() }
+                api.setAccessToken(token.await())
+                api.service.searchArtists(artist, searchArtists)
+            }
         } catch (e: Exception) {
             Timber.e(e)
         }
     }
 
-    private fun getAccessToken(context: Context): String {
-        val auth = Credentials.basic(context.resources.getString(R.string.spotify_client_id), context.resources.getString(R.string.spotify_client_secret))
+    private fun getAccessToken(): String {
+        val auth = Credentials.basic(userName, password)
         val request = Request.Builder()
                 .url("https://accounts.spotify.com/api/token")
                 .header("Authorization", auth)

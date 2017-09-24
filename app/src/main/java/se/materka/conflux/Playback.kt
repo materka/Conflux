@@ -18,9 +18,9 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.util.Util
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import se.materka.conflux.utils.PlaylistService
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.async
+import se.materka.conflux.service.PlaylistService
 import se.materka.exoplayershoutcastdatasource.ShoutcastDataSourceFactory
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadataListener
@@ -213,7 +213,7 @@ class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
                     if (it != Uri.EMPTY) {
                         currentUri = it
                         if (playlist.isEmpty() && PlaylistService.isPlayList(it)) {
-                            launch(UI) {
+                            async(CommonPool) {
                                 PlaylistService.getPlaylist(it).let { list ->
                                     if (!list.isEmpty()) {
                                         playlist.addAll(list)

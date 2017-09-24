@@ -1,4 +1,4 @@
-package se.materka.conflux.database
+package se.materka.conflux.domain
 
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.PrimaryKey
@@ -25,8 +25,8 @@ class Station {
     var id: Long? = null
     var name: String? = null
     var url: String? = null
-    var channels: Int? = null
-    var bitrate: Int? = null
+    var channels: Long? = null
+    var bitrate: Long? = null
     var genre: String? = null
     var format: String? = null
 

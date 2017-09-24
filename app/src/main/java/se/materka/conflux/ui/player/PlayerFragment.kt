@@ -3,7 +3,12 @@ package se.materka.conflux.ui.player
 import android.arch.lifecycle.LifecycleFragment
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.ComponentName
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.view.LayoutInflater
 import android.view.View
@@ -11,8 +16,12 @@ import android.view.ViewGroup
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_player_compact.*
 import se.materka.conflux.MetadataBinding
+import se.materka.conflux.PlayService
 import se.materka.conflux.databinding.FragmentPlayerCompactBinding
+import se.materka.conflux.ui.browse.BrowseViewModel
 import se.materka.conflux.utils.hideIfEmpty
+import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
+import timber.log.Timber
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -30,13 +39,39 @@ import se.materka.conflux.utils.hideIfEmpty
  * limitations under the License.
  */
 
-class PlayerCompactFragment : LifecycleFragment() {
+class PlayerFragment : LifecycleFragment() {
+
+    private lateinit var mediaBrowser: MediaBrowserCompat
+    private val metadata = MetadataBinding()
 
     private val playerViewModel: PlayerViewModel by lazy {
         ViewModelProviders.of(activity).get(PlayerViewModel::class.java)
     }
 
-    private val metadata = MetadataBinding()
+    private val browseViewModel: BrowseViewModel by lazy {
+        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
+    }
+
+    private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
+        override fun onConnected() {
+            // Create a MediaControllerCompat
+            MediaControllerCompat(activity, mediaBrowser.sessionToken).let { controller ->
+                MediaControllerCompat.setMediaController(activity, controller)
+                controller.registerCallback(playerViewModel.mediaControllerCallback)
+            }
+        }
+
+        override fun onConnectionSuspended() {
+            MediaControllerCompat.getMediaController(activity)?.let { controller ->
+                controller.unregisterCallback(playerViewModel.mediaControllerCallback)
+                MediaControllerCompat.setMediaController(activity, null)
+            }
+        }
+
+        override fun onConnectionFailed() {
+            Timber.e("connection failed")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,9 +80,14 @@ class PlayerCompactFragment : LifecycleFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentPlayerCompactBinding.inflate(inflater, container, false)
         playerViewModel.metadata.observe(this, Observer {
-            metadata.setArtist(it?.artist)
-            metadata.setTitle(it?.title)
-            metadata.setShow(it?.show)
+            metadata.setArtist(it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST))
+            metadata.setTitle(it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE))
+            metadata.setShow(it?.getString(ShoutcastMetadata.METADATA_KEY_SHOW))
+            Picasso.with(activity)
+                    .load(it?.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI))
+                    .resize(image_cover.width, image_cover.height)
+                    .centerCrop()
+                    .into(image_cover)
         })
 
         playerViewModel.isPlaying.observe(this, Observer {
@@ -55,6 +95,7 @@ class PlayerCompactFragment : LifecycleFragment() {
                 btn_toggle_play.apply {
                     showPause()
                     setOnClickListener { MediaControllerCompat.getMediaController(activity).transportControls.stop() }
+                    image_cover.setImageBitmap(null)
                 }
             } else {
                 btn_toggle_play.apply {
@@ -65,8 +106,9 @@ class PlayerCompactFragment : LifecycleFragment() {
             }
         })
 
-        playerViewModel.cover.observe(this, Observer {
-            Picasso.with(activity).load(it).into(image_cover)
+        browseViewModel.selected.observe(this, Observer {
+            val uri: Uri = Uri.parse(it?.url)
+            MediaControllerCompat.getMediaController(activity).transportControls?.playFromUri(uri, null)
         })
 
         binding.metadata = metadata
@@ -78,5 +120,13 @@ class PlayerCompactFragment : LifecycleFragment() {
         text_title.hideIfEmpty(true)
         text_show.hideIfEmpty(true)
         btn_toggle_play.showPlay()
+    }
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        mediaBrowser = MediaBrowserCompat(activity,
+                ComponentName(activity, PlayService::class.java),
+                connectionCallback, null)
+        mediaBrowser.connect()
     }
 }

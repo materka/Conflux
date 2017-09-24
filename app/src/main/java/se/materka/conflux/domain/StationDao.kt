@@ -1,8 +1,7 @@
-package se.materka.conflux.database
+package se.materka.conflux.domain
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
-import se.materka.conflux.database.Station
 
 /**
  * Copyright 2017 Mattias Karlsson

@@ -15,10 +15,9 @@ import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.station_list_layout.*
 import se.materka.conflux.R
-import se.materka.conflux.database.Station
+import se.materka.conflux.domain.Station
 import se.materka.conflux.ui.player.PlayerViewModel
 import se.materka.conflux.ui.station.StationActionDialogFragment
-import se.materka.conflux.ui.browse.BrowseAdapter
 
 /**
  * Copyright 2017 Mattias Karlsson
