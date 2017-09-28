@@ -1,12 +1,12 @@
 package se.materka.conflux.ui.player
 
-import android.arch.lifecycle.LifecycleFragment
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -39,17 +39,13 @@ import timber.log.Timber
  * limitations under the License.
  */
 
-class PlayerFragment : LifecycleFragment() {
+class PlayerFragment : Fragment() {
 
     private lateinit var mediaBrowser: MediaBrowserCompat
     private val metadata = MetadataBinding()
 
     private val playerViewModel: PlayerViewModel by lazy {
         ViewModelProviders.of(activity).get(PlayerViewModel::class.java)
-    }
-
-    private val browseViewModel: BrowseViewModel by lazy {
-        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
     }
 
     private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
@@ -71,10 +67,6 @@ class PlayerFragment : LifecycleFragment() {
         override fun onConnectionFailed() {
             Timber.e("connection failed")
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -106,7 +98,7 @@ class PlayerFragment : LifecycleFragment() {
             }
         })
 
-        browseViewModel.selected.observe(this, Observer {
+        playerViewModel.currentStation.observe(this, Observer {
             val uri: Uri = Uri.parse(it?.url)
             MediaControllerCompat.getMediaController(activity).transportControls?.playFromUri(uri, null)
         })

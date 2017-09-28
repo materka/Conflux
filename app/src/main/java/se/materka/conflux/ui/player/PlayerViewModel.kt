@@ -31,7 +31,7 @@ import timber.log.Timber
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val currentStation = MutableLiveData<Station>()
+    val currentStation = MutableLiveData<Station>()
 
     val metadata = MutableLiveData<MediaMetadataCompat>()
     val artistArt = MutableLiveData<Bitmap>()

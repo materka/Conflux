@@ -1,6 +1,5 @@
 package se.materka.conflux.ui.browse
 
-import android.arch.lifecycle.LifecycleFragment
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
@@ -8,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -35,7 +35,7 @@ import se.materka.conflux.ui.station.StationActionDialogFragment
  * limitations under the License.
  */
 
-class BrowseFragment : LifecycleFragment() {
+class BrowseFragment : Fragment() {
 
     private lateinit var stationAdapter: BrowseAdapter
 
@@ -77,7 +77,7 @@ class BrowseFragment : LifecycleFragment() {
 
     fun itemLongClicked(station: Station) {
         browseViewModel.select(station)
-        StationActionDialogFragment().show(activity.supportFragmentManager, "Dialog");
+        StationActionDialogFragment().show(activity.supportFragmentManager, "Dialog")
     }
 
     inner private class DividerItemDecoration(context: Context, val showFirstDivider: Boolean = false,

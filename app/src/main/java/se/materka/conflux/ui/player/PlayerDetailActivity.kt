@@ -1,10 +1,11 @@
 package se.materka.conflux.ui.player
 
-import android.arch.lifecycle.LifecycleRegistry
-import android.arch.lifecycle.LifecycleRegistryOwner
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import kotlinx.android.synthetic.main.activity_player_detail.*
@@ -26,25 +27,8 @@ import se.materka.conflux.R
  * limitations under the License.
  */
 
-class PlayerDetailActivity : AppCompatActivity(), LifecycleRegistryOwner {
-    private val lifecycleRegistry by lazy {
-        LifecycleRegistry(this)
-    }
-
-    override fun getLifecycle(): LifecycleRegistry {
-        return lifecycleRegistry
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_player_detail)
-
-        toolbar.let { t ->
-            t.navigationIcon = IconicsDrawable(this@PlayerDetailActivity, CommunityMaterial.Icon.cmd_arrow_left)
-                    .color(ContextCompat.getColor(this@PlayerDetailActivity, R.color.icons))
-                    .actionBar()
-                    .paddingDp(4)
-            t.setNavigationOnClickListener { onBackPressed() }
-        }
+class PlayerDetailActivity : Fragment() {
+    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater?.inflate(R.layout.activity_player_detail, container, false)
     }
 }

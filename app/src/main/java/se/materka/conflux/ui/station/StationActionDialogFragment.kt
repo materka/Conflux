@@ -3,11 +3,11 @@ package se.materka.conflux.ui.station
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialogFragment
-import android.support.v4.app.DialogFragment
 import android.support.v7.app.AlertDialog
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.franmontiel.fullscreendialog.FullScreenDialogFragment
 import kotlinx.android.synthetic.main.station_menu.*
 import se.materka.conflux.R
 import se.materka.conflux.ui.browse.BrowseViewModel
@@ -41,9 +41,12 @@ class StationActionDialogFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         station_edit.setOnClickListener {
-            val dialog = EditStationDialogFragment()
-            dialog.setStyle(DialogFragment.STYLE_NORMAL, R.style.DialogFragmentTheme)
-            dialog.show(activity.supportFragmentManager, "DialogFragment")
+            FullScreenDialogFragment.Builder(activity)
+                    .setTitle("Edit Station")
+                    .setContent(EditStationFragment::class.java, null)
+                    .setConfirmButton("SAVE")
+                    .build()
+                    .show(fragmentManager, "monkey")
             dismiss()
         }
 

@@ -15,7 +15,7 @@ android {
     buildToolsVersion '26.0.1'
     defaultConfig {
         applicationId "se.greenbird.conflux"
-        minSdkVersion 16
+        minSdkVersion 19
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -25,6 +25,8 @@ android {
     buildTypes {
         debug{
             debuggable true
+            minifyEnabled false
+            useProguard false
         }
         release {
             debuggable false
@@ -46,10 +48,6 @@ kotlin {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    testImplementation 'junit:junit:4.12'
 
     // Support
     implementation "com.android.support:appcompat-v7:$support_version"
@@ -61,8 +59,7 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.5.1'
 
     // Rxjava
-    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.0.2'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.2'
     implementation 'com.jakewharton.rxbinding2:rxbinding-kotlin:2.0.0'
 
     // Iconics
@@ -78,13 +75,11 @@ dependencies {
     // Stetho
     implementation 'com.facebook.stetho:stetho:1.5.0'
 
-    // Android Lifecycle
+    // Android Arch
     implementation "android.arch.lifecycle:runtime:$android_arch_version"
     implementation "android.arch.lifecycle:extensions:$android_arch_version"
-    kapt "android.arch.lifecycle:compiler:$android_arch_version"
-
-    // Android Room
     implementation "android.arch.persistence.room:runtime:$android_arch_version"
+    kapt "android.arch.lifecycle:compiler:$android_arch_version"
     kapt "android.arch.persistence.room:compiler:$android_arch_version"
 
     // Anko
@@ -94,4 +89,5 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'com.github.materka:exoplayer-shoutcast-datasource:2e1a849b87'
     implementation 'com.google.android.exoplayer:exoplayer-core:r2.5.0'
+    implementation 'com.github.franmontiel:FullScreenDialog:1.0.1'
 }

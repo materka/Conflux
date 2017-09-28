@@ -6,9 +6,12 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.franmontiel.fullscreendialog.FullScreenDialogContent
+import com.franmontiel.fullscreendialog.FullScreenDialogController
 import kotlinx.android.synthetic.main.fragment_play_station.*
 import se.materka.conflux.R
 import se.materka.conflux.domain.Station
+import se.materka.conflux.ui.browse.BrowseViewModel
 import se.materka.conflux.ui.player.PlayerViewModel
 
 /**
@@ -27,24 +30,32 @@ import se.materka.conflux.ui.player.PlayerViewModel
  * limitations under the License.
  */
 
-class PlayStationFragment : Fragment() {
-
+class PlayStationFragment : Fragment(), FullScreenDialogContent {
     private val playerViewModel: PlayerViewModel by lazy {
         ViewModelProviders.of(activity).get(PlayerViewModel::class.java)
+    }
+
+    private val browseViewModel: BrowseViewModel by lazy {
+        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater?.inflate(R.layout.fragment_play_station, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        btn_play.setOnClickListener {
-            val station = Station().apply {
-                url = text_url.text.toString()
-                name = text_name.text.toString()
-            }
-            playerViewModel.play(station)
+    override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
+        val station = Station().apply {
+            name = text_name.text.toString()
+            url = text_url.text.toString()
         }
+        if (check_save.isChecked) browseViewModel.saveStation(station)
+        playerViewModel.play(station)
+        return false
+    }
+
+    override fun onDialogCreated(dialogController: FullScreenDialogController?) {}
+
+    override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
+        return false
     }
 }
