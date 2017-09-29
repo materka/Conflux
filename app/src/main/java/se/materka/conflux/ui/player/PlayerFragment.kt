@@ -10,16 +10,16 @@ import android.support.v4.app.Fragment
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.fragment_player_compact.*
+import kotlinx.android.synthetic.main.fragment_player.*
 import se.materka.conflux.MetadataBinding
 import se.materka.conflux.PlayService
-import se.materka.conflux.databinding.FragmentPlayerCompactBinding
-import se.materka.conflux.ui.browse.BrowseViewModel
-import se.materka.conflux.utils.hideIfEmpty
+import se.materka.conflux.databinding.FragmentPlayerBinding
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import timber.log.Timber
 
@@ -70,7 +70,7 @@ class PlayerFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val binding = FragmentPlayerCompactBinding.inflate(inflater, container, false)
+        val binding = FragmentPlayerBinding.inflate(inflater, container, false)
         playerViewModel.metadata.observe(this, Observer {
             metadata.setArtist(it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST))
             metadata.setTitle(it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE))
@@ -108,9 +108,9 @@ class PlayerFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        text_artist.hideIfEmpty(true)
-        text_title.hideIfEmpty(true)
-        text_show.hideIfEmpty(true)
+        text_artist.addTextChangedListener(hideIfEmptyWatcher(text_artist, true))
+        text_title.addTextChangedListener(hideIfEmptyWatcher(text_title, true))
+        text_show.addTextChangedListener(hideIfEmptyWatcher(text_show, true))
         btn_toggle_play.showPlay()
     }
 
@@ -120,5 +120,17 @@ class PlayerFragment : Fragment() {
                 ComponentName(activity, PlayService::class.java),
                 connectionCallback, null)
         mediaBrowser.connect()
+    }
+
+    private fun hideIfEmptyWatcher(view: View, hide: Boolean): TextWatcher {
+        return object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                view.visibility = if ((s == null || s.isNullOrEmpty()) && hide) View.GONE else View.VISIBLE
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
     }
 }

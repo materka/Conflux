@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment
-import kotlinx.android.synthetic.main.station_menu.*
+import kotlinx.android.synthetic.main.menu_action.*
 import se.materka.conflux.R
 import se.materka.conflux.ui.browse.BrowseViewModel
 
@@ -28,35 +28,44 @@ import se.materka.conflux.ui.browse.BrowseViewModel
  * limitations under the License.
  */
 
-class StationActionDialogFragment : BottomSheetDialogFragment() {
+class ActionFragment : BottomSheetDialogFragment() {
     private val browseViewModel: BrowseViewModel by lazy {
         ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.station_menu, container, false)
+        return inflater.inflate(R.layout.menu_action, container, false)
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        station_edit.setOnClickListener {
+        info.setOnClickListener {
             FullScreenDialogFragment.Builder(activity)
-                    .setTitle("Edit Station")
-                    .setContent(EditStationFragment::class.java, null)
-                    .setConfirmButton("SAVE")
+                    .setTitle("Information")
+                    .setContent(InfoFragment::class.java, null)
                     .build()
-                    .show(fragmentManager, "monkey")
+                    .show(fragmentManager, "InfoFragment")
             dismiss()
         }
 
-        station_delete.setOnClickListener {
+        edit.setOnClickListener {
+            FullScreenDialogFragment.Builder(activity)
+                    .setTitle("Edit")
+                    .setContent(EditFragment::class.java, null)
+                    .setConfirmButton("SAVE")
+                    .build()
+                    .show(fragmentManager, "EditFragment")
+            dismiss()
+        }
+
+        delete.setOnClickListener {
             AlertDialog.Builder(context, R.style.AppTheme_AlertDialog)
-                    .setTitle("REMOVE STATION")
+                    .setTitle("Remove")
                     .setMessage("Are you sure you want to remove this station?")
-                    .setPositiveButton("DO IT") { _, _ ->
+                    .setPositiveButton("REMOVE") { _, _ ->
                         browseViewModel.deleteStation()
-                        this@StationActionDialogFragment.dismiss()
+                        this@ActionFragment.dismiss()
                     }
                     .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
                     .show()

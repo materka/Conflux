@@ -7,8 +7,8 @@ import android.arch.lifecycle.MutableLiveData
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import se.materka.conflux.AppDatabase
-import se.materka.conflux.domain.StationDao
 import se.materka.conflux.domain.Station
+import se.materka.conflux.domain.StationDao
 
 
 /**

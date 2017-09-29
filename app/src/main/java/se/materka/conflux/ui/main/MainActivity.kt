@@ -2,7 +2,6 @@ package se.materka.conflux.ui.main
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
-import android.content.Context
 import android.media.AudioManager
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
@@ -11,13 +10,12 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.view.View
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment
-import com.mikepenz.iconics.context.IconicsContextWrapper
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 import se.materka.conflux.R
 import se.materka.conflux.ui.browse.BrowseFragment
 import se.materka.conflux.ui.player.PlayerViewModel
-import se.materka.conflux.ui.station.PlayStationFragment
+import se.materka.conflux.ui.station.PlayFragment
 
 
 /**
@@ -42,10 +40,6 @@ class MainActivity : AppCompatActivity() {
         ViewModelProviders.of(this).get(PlayerViewModel::class.java)
     }
 
-    override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(IconicsContextWrapper.wrap(newBase))
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         volumeControlStream = AudioManager.STREAM_MUSIC
@@ -60,13 +54,14 @@ class MainActivity : AppCompatActivity() {
         })
 
         fab_play.setOnClickListener {
-            FullScreenDialogFragment.Builder(this)
-                    .setTitle("PLAY STATION")
-                    .setContent(PlayStationFragment::class.java, null)
+            FullScreenDialogFragment.Builder(this@MainActivity)
+                    .setTitle("Play")
+                    .setContent(PlayFragment::class.java, null)
                     .setConfirmButton("PLAY")
                     .build()
-                    .show(supportFragmentManager, "banana")
+                    .show(supportFragmentManager, "PlayFragment")
         }
+
 
         supportFragmentManager.addOnBackStackChangedListener {
             if (supportFragmentManager.backStackEntryCount > 0) {

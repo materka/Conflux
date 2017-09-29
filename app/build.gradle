@@ -62,10 +62,6 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.1.2'
     implementation 'com.jakewharton.rxbinding2:rxbinding-kotlin:2.0.0'
 
-    // Iconics
-    implementation 'com.mikepenz:iconics-core:2.8.4@aar'
-    implementation 'com.mikepenz:community-material-typeface:1.9.32.1@aar'
-
     // Spotify Web API
     implementation 'com.github.kaaes:spotify-web-api-android:0.4.1'
 

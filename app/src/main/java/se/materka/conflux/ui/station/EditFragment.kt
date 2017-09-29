@@ -6,13 +6,12 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import com.franmontiel.fullscreendialog.FullScreenDialogContent
 import com.franmontiel.fullscreendialog.FullScreenDialogController
-import kotlinx.android.synthetic.main.fragment_play_station.*
+import kotlinx.android.synthetic.main.fragment_edit.*
 import se.materka.conflux.R
-import se.materka.conflux.domain.Station
 import se.materka.conflux.ui.browse.BrowseViewModel
-import se.materka.conflux.ui.player.PlayerViewModel
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -30,26 +29,29 @@ import se.materka.conflux.ui.player.PlayerViewModel
  * limitations under the License.
  */
 
-class PlayStationFragment : Fragment(), FullScreenDialogContent {
-    private val playerViewModel: PlayerViewModel by lazy {
-        ViewModelProviders.of(activity).get(PlayerViewModel::class.java)
-    }
-
+class EditFragment : Fragment(), FullScreenDialogContent {
     private val browseViewModel: BrowseViewModel by lazy {
         ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater?.inflate(R.layout.fragment_play_station, container, false)
+    private val station by lazy {
+        browseViewModel.selected.value
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.fragment_edit, container, false)
+    }
+
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        text_name.setText(station?.name, TextView.BufferType.EDITABLE)
+        text_url.setText(station?.url, TextView.BufferType.EDITABLE)
     }
 
     override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
-        val station = Station().apply {
-            name = text_name.text.toString()
-            url = text_url.text.toString()
-        }
-        if (check_save.isChecked) browseViewModel.saveStation(station)
-        playerViewModel.play(station)
+        station?.name = text_name.text.toString()
+        station?.url = text_url.text.toString()
+        browseViewModel.updateStation()
         return false
     }
 

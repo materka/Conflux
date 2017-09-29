@@ -13,11 +13,11 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.station_list_layout.*
+import kotlinx.android.synthetic.main.fragment_browse.*
 import se.materka.conflux.R
 import se.materka.conflux.domain.Station
 import se.materka.conflux.ui.player.PlayerViewModel
-import se.materka.conflux.ui.station.StationActionDialogFragment
+import se.materka.conflux.ui.station.ActionFragment
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -48,7 +48,7 @@ class BrowseFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater?.inflate(R.layout.station_list_layout, container, false)
+        return inflater?.inflate(R.layout.fragment_browse, container, false)
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -77,7 +77,7 @@ class BrowseFragment : Fragment() {
 
     fun itemLongClicked(station: Station) {
         browseViewModel.select(station)
-        StationActionDialogFragment().show(activity.supportFragmentManager, "Dialog")
+        ActionFragment().show(activity.supportFragmentManager, "ActionFragment")
     }
 
     inner private class DividerItemDecoration(context: Context, val showFirstDivider: Boolean = false,

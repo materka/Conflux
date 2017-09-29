@@ -5,7 +5,7 @@ import android.support.v7.widget.RecyclerView.ViewHolder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.station_list_item_layout.view.*
+import kotlinx.android.synthetic.main.item_browse.view.*
 import se.materka.conflux.R
 import se.materka.conflux.domain.Station
 
@@ -77,10 +77,10 @@ class BrowseAdapter(val onItemClicked: (station: Station) -> Unit?,
         val inflater = LayoutInflater.from(parent.context)
         val vh: ViewHolder
         if (viewType == FOOTER_VIEW) {
-            val view = inflater.inflate(R.layout.station_list_footer, parent, false)
+            val view = inflater.inflate(R.layout.footer_browse, parent, false)
             vh = FooterViewHolder(view)
         } else {
-            val view = inflater.inflate(R.layout.station_list_item_layout, parent, false)
+            val view = inflater.inflate(R.layout.item_browse, parent, false)
             vh = StationViewHolder(view)
         }
         return vh

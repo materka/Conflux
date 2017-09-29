@@ -7,7 +7,6 @@ import kaaes.spotify.webapi.android.SpotifyError
 import kaaes.spotify.webapi.android.models.ArtistsPager
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.run
 import okhttp3.Credentials
 import okhttp3.FormBody
 import okhttp3.OkHttpClient

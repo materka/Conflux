@@ -2,7 +2,6 @@ package se.materka.conflux
 
 import android.app.Notification
 import android.content.Context
-import android.support.v4.app.NotificationBuilderWithBuilderAccessor
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.media.MediaMetadataCompat

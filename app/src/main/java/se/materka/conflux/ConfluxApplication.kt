@@ -4,7 +4,6 @@ import android.app.Application
 import com.facebook.stetho.Stetho
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
 import org.jetbrains.anko.coroutines.experimental.asReference
 import se.materka.conflux.domain.CreateStation
 import timber.log.Timber

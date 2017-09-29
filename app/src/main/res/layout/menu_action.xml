@@ -1,55 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout app:layout_behavior="android.support.design.widget.BottomSheetBehavior"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/station_menu"
     android:layout_width="match_parent"
     android:layout_height="120dp"
     android:orientation="vertical"
-    android:background="#ffffff"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+
     <LinearLayout
-        android:id="@+id/station_edit"
+        android:id="@+id/info"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:clickable="true"
         android:focusable="true"
-        android:orientation="horizontal"
         android:foreground="?android:attr/selectableItemBackground"
+        android:orientation="horizontal"
         android:padding="16dp">
+
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:ico_icon="cmd-pencil"
-            app:ico_size="24dp"
-            app:ico_color="@color/secondary_text"
-            />
+            android:src="@drawable/md_info" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginLeft="16dp"
-            android:text="Edit"/>
+            android:layout_marginStart="16dp"
+            android:text="Info" />
     </LinearLayout>
+
     <LinearLayout
-        android:id="@+id/station_delete"
+        android:id="@+id/edit"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:clickable="true"
         android:focusable="true"
-        android:orientation="horizontal"
         android:foreground="?android:attr/selectableItemBackground"
+        android:orientation="horizontal"
         android:padding="16dp">
+
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:ico_icon="cmd-delete"
-            app:ico_size="24dp"
-            app:ico_color="@color/secondary_text" />
+            android:src="@drawable/md_pencil" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginLeft="16dp"
-            android:text="Delete"/>
+            android:layout_marginStart="16dp"
+            android:text="Edit" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/delete"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/md_delete" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="16dp"
+            android:text="Delete" />
     </LinearLayout>
 </LinearLayout>

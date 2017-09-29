@@ -27,6 +27,7 @@
             android:id="@+id/fab_play"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:src="@drawable/md_plus"
             app:useCompatPadding="true"
             app:layout_anchor="@id/player"
             app:layout_anchorGravity="top|end|right"
