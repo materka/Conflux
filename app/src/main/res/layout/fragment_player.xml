@@ -5,7 +5,7 @@
 
         <variable
             name="metadata"
-            type="se.materka.conflux.MetadataBinding" />
+            type="se.materka.conflux.ui.MetadataBinding" />
     </data>
 
     <RelativeLayout

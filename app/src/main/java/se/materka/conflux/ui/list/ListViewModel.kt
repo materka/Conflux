@@ -1,4 +1,4 @@
-package se.materka.conflux.ui.browse
+package se.materka.conflux.ui.list
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
@@ -6,6 +6,7 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
+import org.jetbrains.anko.coroutines.experimental.bg
 import se.materka.conflux.AppDatabase
 import se.materka.conflux.domain.Station
 import se.materka.conflux.domain.StationDao
@@ -27,14 +28,13 @@ import se.materka.conflux.domain.StationDao
  * limitations under the License.
  */
 
-class BrowseViewModel(application: Application) : AndroidViewModel(application) {
+class ListViewModel(application: Application) : AndroidViewModel(application) {
 
     private val dao: StationDao by lazy {
         AppDatabase.Companion.instance(application).stationDao()
     }
 
     val selected = MutableLiveData<Station>()
-        get() = field
 
     fun select(station: Station?) {
         selected.value = station
@@ -47,7 +47,7 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
     fun saveStation(): LiveData<Long> {
         val result = MutableLiveData<Long>()
         selected.value?.let { s ->
-            async(UI) {
+            bg {
                 val id = dao.insert(s)
                 if (id > -1) {
                     selected.postValue(dao.get(id))
@@ -66,7 +66,7 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
     fun deleteStation(): LiveData<Boolean> {
         val result = MutableLiveData<Boolean>()
         selected.value?.let { station ->
-            async(UI) {
+            bg {
                 if (dao.delete(station) == 1) {
                     station.id = null
                     selected.postValue(station)
@@ -79,13 +79,11 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
         return result
     }
 
-    fun updateStation(): LiveData<Boolean> {
-        val result = MutableLiveData<Boolean>()
+    fun updateStation() {
         selected.value?.let { station ->
-            async(UI) {
-                result.postValue(dao.update(station) == 1)
+            bg {
+                dao.update(station)
             }
         }
-        return result
     }
 }

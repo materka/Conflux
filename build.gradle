@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.1.50'
+    ext.kotlin_version = '1.1.51'
     ext.support_version = '26.1.0'
     ext.android_arch_version = '1.0.0-alpha9-1'
     ext.gradle_build_tools_version = '3.0.0-alpha9'
@@ -17,7 +17,8 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.1.4-3"
+    id "org.jetbrains.kotlin.jvm" version "1.1.51"
+    id "org.jetbrains.kotlin.android.extensions" version "1.1.51"
     id "nebula.lint" version "8.3.1"
 }
 

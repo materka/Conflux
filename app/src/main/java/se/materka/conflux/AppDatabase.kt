@@ -28,12 +28,13 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun stationDao(): StationDao
 
     companion object {
-        private var instance: AppDatabase? = null
+        private var db: AppDatabase? = null
         fun instance(context: Context): AppDatabase {
-            if (instance == null) {
-                instance = Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "monkey").build()
+            if (db == null) {
+                val name = context.resources.getString(R.string.app_name).decapitalize()
+                db = Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, name).build()
             }
-            return instance!!
+            return db!!
         }
     }
 }

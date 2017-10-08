@@ -46,8 +46,16 @@ import java.util.*
  * limitations under the License.
  */
 
-class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
+class Playback(service: MediaBrowserServiceCompat, private val callback: Callback) : Player.EventListener,
         ShoutcastMetadataListener {
+
+    companion object {
+        // The volume we set the media player to when we lose audio focus, but are
+        // allowed to reduce the volume instead of stopping playback.
+        private val VOLUME_DUCK = 0.2f
+        // The volume we set the media player when we have audio focus.
+        private val VOLUME_NORMAL = 1.0f
+    }
 
     interface Callback {
         fun onPlaybackStateChanged(state: Int)
@@ -56,14 +64,6 @@ class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
     }
 
     private val context = service.applicationContext
-
-    // The volume we set the media player to when we lose audio focus, but are
-    // allowed to reduce the volume instead of stopping playback.
-    private val VOLUME_DUCK = 0.2f
-    // The volume we set the media player when we have audio focus.
-    private val VOLUME_NORMAL = 1.0f
-
-    var callback: Callback? = null
     private var currentUri: Uri? = null
     private var audioSource: MediaSource? = null
     private var audioState: Int = PlaybackStateCompat.STATE_NONE
@@ -105,7 +105,7 @@ class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
 
     override fun onMetadataReceived(data: ShoutcastMetadata) {
         Timber.i("Metadata Received")
-        callback?.onMetadataReceived(data)
+        callback.onMetadataReceived(data)
     }
 
     override fun onPlayerError(error: ExoPlaybackException?) {
@@ -113,13 +113,13 @@ class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
         if (!playlist.isEmpty()) {
             play(playlist.pop())
         } else {
-            callback?.onError(PlaybackStateCompat.STATE_ERROR, "No working URLs found")
+            callback.onError(PlaybackStateCompat.STATE_ERROR, "No working URLs found")
         }
         if (error?.sourceException is HttpDataSource.InvalidResponseCodeException) {
             val responseCode = (error.sourceException as HttpDataSource.InvalidResponseCodeException).responseCode
             when (responseCode) {
                 404 -> {
-                    callback?.onError(PlaybackStateCompat.STATE_ERROR, "Url not found")
+                    callback.onError(PlaybackStateCompat.STATE_ERROR, "Url not found")
                 }
             }
         }
@@ -149,7 +149,7 @@ class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
             }
             else -> audioState = PlaybackStateCompat.STATE_NONE
         }
-        callback?.onPlaybackStateChanged(audioState)
+        callback.onPlaybackStateChanged(audioState)
     }
 
     override fun onLoadingChanged(isLoading: Boolean) {
@@ -270,11 +270,11 @@ class Playback(service: MediaBrowserServiceCompat) : Player.EventListener,
             // Prevent CPU from going to sleep while screen is off
             wakeLock.acquire()
 
-            callback?.onPlaybackStateChanged(PlaybackStateCompat.STATE_BUFFERING)
+            callback.onPlaybackStateChanged(PlaybackStateCompat.STATE_BUFFERING)
 
         } catch (e: IOException) {
+            callback.onError(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, e.message ?: "Unknown error")
             Timber.e(e)
-            callback?.onError(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, e.message ?: "Unknown error")
         }
     }
 }

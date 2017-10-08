@@ -68,6 +68,7 @@ class ArtistArtService {
     }
 
     fun getArt(artist: String?, callback: (Uri?) -> Unit) {
+        if (artist?.isEmpty() == true) { return }
         this.callback = callback
         try {
             async(CommonPool) {

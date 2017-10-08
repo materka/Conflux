@@ -1,7 +1,8 @@
-package se.materka.conflux
+package se.materka.conflux.ui
 
 import android.databinding.BaseObservable
 import android.databinding.Bindable
+import se.materka.conflux.BR
 
 /**
  * Copyright 2017 Mattias Karlsson

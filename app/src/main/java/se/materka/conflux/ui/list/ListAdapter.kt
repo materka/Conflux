@@ -1,13 +1,15 @@
-package se.materka.conflux.ui.browse
+package se.materka.conflux.ui.list
 
+import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.RecyclerView.ViewHolder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.item_browse.view.*
 import se.materka.conflux.R
+import se.materka.conflux.databinding.FragmentListItemBinding
 import se.materka.conflux.domain.Station
+
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -25,39 +27,45 @@ import se.materka.conflux.domain.Station
  * limitations under the License.
  */
 
-class BrowseAdapter(val onItemClicked: (station: Station) -> Unit?,
-                    val onItemLongClicked: (station: Station) -> Unit?) : RecyclerView.Adapter<ViewHolder>() {
-    private val FOOTER_VIEW = 1
+class ListAdapter(val onItemClicked: (station: Station) -> Unit?,
+                  val onItemLongClicked: (station: Station) -> Unit?) : RecyclerView.Adapter<ViewHolder>() {
+    companion object {
+        private val FOOTER_VIEW = 1
+    }
 
     // Define a view holder for Footer view
     inner class FooterViewHolder(itemView: View) : ViewHolder(itemView)
 
-    inner class StationViewHolder(view: View) : ViewHolder(view) {
+    inner class StationViewHolder(private val listItemBinding: FragmentListItemBinding) : ViewHolder(listItemBinding.root) {
+
         init {
-            view.setOnClickListener {
+            listItemBinding.root.setOnClickListener {
                 onItemClicked(stations[adapterPosition])
             }
-            view.setOnLongClickListener {
+            listItemBinding.root.setOnLongClickListener {
                 onItemLongClicked(stations[adapterPosition])
                 true
             }
         }
+
+        fun bind(station: Station) {
+            listItemBinding.station = station
+            listItemBinding.executePendingBindings()
+        }
     }
 
-    var stations: List<Station> = mutableListOf()
-        set(value) {
-            field = value
-            notifyDataSetChanged()
-        }
+    private var stations: List<Station> = mutableListOf()
+
+    fun updateDataSet(items: List<Station>) {
+        stations = items
+        notifyDataSetChanged()
+    }
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
         try {
             if (holder is StationViewHolder) {
-                stations.get(position).let { station ->
-                    holder.itemView.text_name.text = station.name
-                    holder.itemView.text_url.text = station.url
-                    holder.itemView.text_bitrate.text = "${station.bitrate.toString()} kbps"
-                    holder.itemView.text_format.text = station.format
+                stations[position].let { station ->
+                    holder.bind(station)
                 }
             }
         } catch (e: Exception) {
@@ -66,22 +74,22 @@ class BrowseAdapter(val onItemClicked: (station: Station) -> Unit?,
     }
 
     override fun getItemCount(): Int {
-        return if (stations.isEmpty()) 1 else stations.size + 1;
+        return if (stations.isEmpty()) 1 else stations.size + 1
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (position == stations.size) FOOTER_VIEW else super.getItemViewType(position)
+        return if (position == stations.size) FOOTER_VIEW else R.layout.fragment_list_item
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder? {
         val inflater = LayoutInflater.from(parent.context)
         val vh: ViewHolder
         if (viewType == FOOTER_VIEW) {
-            val view = inflater.inflate(R.layout.footer_browse, parent, false)
+            val view = inflater.inflate(R.layout.fragment_list_footer, parent, false)
             vh = FooterViewHolder(view)
         } else {
-            val view = inflater.inflate(R.layout.item_browse, parent, false)
-            vh = StationViewHolder(view)
+            val binding: FragmentListItemBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.context), viewType, parent, false)
+            vh = StationViewHolder(binding)
         }
         return vh
     }

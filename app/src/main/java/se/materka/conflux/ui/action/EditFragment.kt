@@ -1,4 +1,4 @@
-package se.materka.conflux.ui.station
+package se.materka.conflux.ui.action
 
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -11,7 +11,8 @@ import com.franmontiel.fullscreendialog.FullScreenDialogContent
 import com.franmontiel.fullscreendialog.FullScreenDialogController
 import kotlinx.android.synthetic.main.fragment_edit.*
 import se.materka.conflux.R
-import se.materka.conflux.ui.browse.BrowseViewModel
+import se.materka.conflux.ui.list.ListViewModel
+import se.materka.conflux.ui.Common
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -30,12 +31,12 @@ import se.materka.conflux.ui.browse.BrowseViewModel
  */
 
 class EditFragment : Fragment(), FullScreenDialogContent {
-    private val browseViewModel: BrowseViewModel by lazy {
-        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
+    private val listViewModel: ListViewModel by lazy {
+        ViewModelProviders.of(activity).get(ListViewModel::class.java)
     }
 
     private val station by lazy {
-        browseViewModel.selected.value
+        listViewModel.selected.value
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -49,15 +50,21 @@ class EditFragment : Fragment(), FullScreenDialogContent {
     }
 
     override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
+        view?.let {
+            Common.hideKeyboard(context, it)
+        }
         station?.name = text_name.text.toString()
         station?.url = text_url.text.toString()
-        browseViewModel.updateStation()
+        listViewModel.updateStation()
         return false
     }
 
     override fun onDialogCreated(dialogController: FullScreenDialogController?) {}
 
     override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
+        view?.let {
+            Common.hideKeyboard(context, it)
+        }
         return false
     }
 }

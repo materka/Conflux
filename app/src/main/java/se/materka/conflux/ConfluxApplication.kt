@@ -14,7 +14,7 @@ class ConfluxApplication : Application() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
             Stetho.initializeWithDefaults(this)
-            deleteDatabase("monkey")
+            deleteDatabase("conflux")
 
             asReference().let { ref ->
                 async(CommonPool) {

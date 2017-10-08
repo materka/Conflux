@@ -1,4 +1,4 @@
-package se.materka.conflux.ui.station
+package se.materka.conflux.ui.action
 
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -10,7 +10,7 @@ import com.franmontiel.fullscreendialog.FullScreenDialogContent
 import com.franmontiel.fullscreendialog.FullScreenDialogController
 import kotlinx.android.synthetic.main.fragment_info.*
 import se.materka.conflux.R
-import se.materka.conflux.ui.browse.BrowseViewModel
+import se.materka.conflux.ui.list.ListViewModel
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -29,12 +29,12 @@ import se.materka.conflux.ui.browse.BrowseViewModel
  */
 
 class InfoFragment : Fragment(), FullScreenDialogContent {
-    private val browseViewModel: BrowseViewModel by lazy {
-        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
+    private val listViewModel: ListViewModel by lazy {
+        ViewModelProviders.of(activity).get(ListViewModel::class.java)
     }
 
     private val station by lazy {
-        browseViewModel.selected.value
+        listViewModel.selected.value
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

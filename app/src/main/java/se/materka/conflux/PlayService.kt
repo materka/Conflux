@@ -16,10 +16,13 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.jetbrains.anko.coroutines.experimental.bg
 import se.materka.conflux.service.ArtistArtService
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
+import timber.log.Timber
+import java.lang.IllegalStateException
 
 
 /**
@@ -70,13 +73,12 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
     private var audioBecomingNoisyReceiver: BecomingNoisyReceiver? = null
 
     private val player: Playback by lazy {
-        Playback(this).apply {
-            callback = this@PlayService
-        }
+        Playback(this, this@PlayService)
     }
 
     override fun onPlaybackStateChanged(state: Int) {
-        mediaSession.setPlaybackState(stateBuilder.setState(state, 0L, 0f).build())
+        val state = stateBuilder.setState(state, 0L, 0f).build()
+        setPlaybackState(state)
     }
 
     override fun onError(errorCode: Int, error: String) {
@@ -84,7 +86,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
                 .setState(PlaybackStateCompat.STATE_ERROR, 0L, 0f)
                 .setErrorMessage(404, "No working url found")
                 .build()
-        mediaSession.setPlaybackState(state)
+        setPlaybackState(state)
     }
 
     override fun onMetadataReceived(metadata: ShoutcastMetadata) {
@@ -163,6 +165,16 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
         audioBecomingNoisyReceiver?.let { unregisterReceiver(it) }
         stopForeground(false)
         notificationManager.notify(SERVICE_ID, PlayNotification.buildNotification(this, mediaSession))
+    }
+
+    private fun setPlaybackState(state: PlaybackStateCompat) {
+        try {
+            mediaSession.setPlaybackState(state)
+        } catch (e: IllegalStateException) {
+            // TODO: Investigate why for some unknown reason we occasionally get an exception for
+            // "beginBroadcast() called while already in a broadast"
+            Timber.e(e)
+        }
     }
 
     private inner class MediaSessionCallback : MediaSessionCompat.Callback() {

@@ -1,4 +1,4 @@
-package se.materka.conflux.ui.station
+package se.materka.conflux.ui.action
 
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment
 import kotlinx.android.synthetic.main.menu_action.*
 import se.materka.conflux.R
-import se.materka.conflux.ui.browse.BrowseViewModel
+import se.materka.conflux.ui.list.ListViewModel
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -29,8 +29,8 @@ import se.materka.conflux.ui.browse.BrowseViewModel
  */
 
 class ActionFragment : BottomSheetDialogFragment() {
-    private val browseViewModel: BrowseViewModel by lazy {
-        ViewModelProviders.of(activity).get(BrowseViewModel::class.java)
+    private val listViewModel: ListViewModel by lazy {
+        ViewModelProviders.of(activity).get(ListViewModel::class.java)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -60,15 +60,16 @@ class ActionFragment : BottomSheetDialogFragment() {
         }
 
         delete.setOnClickListener {
-            AlertDialog.Builder(context, R.style.AppTheme_AlertDialog)
+            AlertDialog.Builder(context, R.style.AppTheme_WarningDialog)
                     .setTitle("Remove")
                     .setMessage("Are you sure you want to remove this station?")
                     .setPositiveButton("REMOVE") { _, _ ->
-                        browseViewModel.deleteStation()
+                        listViewModel.deleteStation()
                         this@ActionFragment.dismiss()
                     }
                     .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
                     .show()
+            dismiss()
         }
     }
 }

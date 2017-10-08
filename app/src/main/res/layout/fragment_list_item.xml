@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+    <data>
+        <variable
+            name="station" type="se.materka.conflux.domain.Station" />
+    </data>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="60dp"
@@ -18,37 +25,38 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/text_name"
+            android:text="@{station.name}"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ellipsize="end"
             android:singleLine="true"
             android:textAllCaps="true"
-            android:textSize="14sp" />
+            android:textStyle="bold"
+            android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/text_bitrate"
+            android:text="@{station.bitrate.toString()}"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:textSize="12sp" />
 
         <TextView
-            android:id="@+id/text_format"
+            android:text="@{station.format}"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginLeft="2dp"
             android:layout_marginStart="2dp"
             android:textSize="12sp"
             android:gravity="end" />
     </LinearLayout>
 
     <TextView
-        android:id="@+id/text_url"
+        android:text="@{station.url}"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:singleLine="true"
         android:textAllCaps="true"
-        android:textSize="12sp" />
+        android:textSize="14sp" />
 </LinearLayout>
+</layout>
