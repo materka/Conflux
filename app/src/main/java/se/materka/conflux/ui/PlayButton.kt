@@ -1,6 +1,7 @@
 package se.materka.conflux.ui
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.util.AttributeSet
 import android.widget.ImageButton
@@ -22,14 +23,14 @@ import se.materka.conflux.R
  * limitations under the License.
  */
 
-class AnimatedPlayButton : ImageButton {
+class PlayButton : ImageButton {
 
-    private val playToPauseAnim: AnimatedVectorDrawableCompat? by lazy {
-        AnimatedVectorDrawableCompat.create(context, R.drawable.play_to_pause_anim)
+    private val stopDrawable: Drawable? by lazy {
+        resources.getDrawable(R.drawable.md_stop, resources.newTheme())
     }
 
-    private val pauseToPlayAnim: AnimatedVectorDrawableCompat? by lazy {
-        AnimatedVectorDrawableCompat.create(context, R.drawable.pause_to_play_anim)
+    private val playDrawable: Drawable? by lazy {
+        resources.getDrawable(R.drawable.md_play, resources.newTheme())
     }
 
     private var isShowingPlay = true
@@ -43,9 +44,8 @@ class AnimatedPlayButton : ImageButton {
     constructor(ctx: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(ctx, attrs, defStyleAttr, defStyleRes)
 
     fun toggle() {
-        val drawable = if (isShowingPlay) playToPauseAnim else pauseToPlayAnim
+        val drawable = if (isShowingPlay) stopDrawable else playDrawable
         this.setImageDrawable(drawable)
-        drawable?.start()
         isShowingPlay = !isShowingPlay
     }
 

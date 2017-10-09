@@ -71,7 +71,7 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <se.materka.conflux.ui.AnimatedPlayButton
+        <se.materka.conflux.ui.PlayButton
             android:id="@+id/btn_toggle_play"
             android:layout_width="60dp"
             android:layout_height="60dp"

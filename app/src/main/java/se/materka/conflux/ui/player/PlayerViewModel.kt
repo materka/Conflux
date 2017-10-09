@@ -37,7 +37,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     val artistArt = MutableLiveData<Bitmap>()
     val isPlaying = MutableLiveData<Boolean>()
 
-    val mediaControllerCallback: MediaControllerCompat.Callback = object: MediaControllerCompat.Callback() {
+    val mediaControllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
         override fun onMetadataChanged(data: MediaMetadataCompat?) {
             Timber.i("New metadata")
             this@PlayerViewModel.metadata.value = data
@@ -54,7 +54,14 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            this@PlayerViewModel.isPlaying.value = state?.state == PlaybackStateCompat.STATE_PLAYING
+            this@PlayerViewModel.isPlaying.value = when (state?.state) {
+                PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.STATE_BUFFERING -> {
+                    true
+                }
+                else -> {
+                    false
+                }
+            }
         }
     }
 

@@ -85,11 +85,13 @@ class MainActivity : AppCompatActivity() {
         play.setOnClickListener { showPlayDialog() }
 
         playerViewModel.isPlaying.observe(this, Observer { playing ->
-            BottomSheetBehavior.from(player_fragment.view).state = if (playing != false)
-                BottomSheetBehavior.STATE_EXPANDED
+            if (playing != false)
+                setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
             else
-                BottomSheetBehavior.STATE_COLLAPSED
+                setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
         })
+
+        setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
     }
 
     override fun onResume() {
@@ -125,6 +127,10 @@ class MainActivity : AppCompatActivity() {
                 .setConfirmButton("PLAY")
                 .build()
                 .show(supportFragmentManager, PlayFragment::class.java.name)
+    }
+
+    private fun setBottomSheetState(state: Int) {
+        BottomSheetBehavior.from(player_fragment.view).state = state
     }
 }
 

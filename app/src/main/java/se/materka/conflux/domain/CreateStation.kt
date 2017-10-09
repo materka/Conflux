@@ -40,6 +40,9 @@ class CreateStation(val dao: StationDao) {
         )
         stations.forEach { station ->
             dao.insert(station)
+            dao.insert(station)
+            dao.insert(station)
+            dao.insert(station)
         }
         return stations.map { it.id }
     }

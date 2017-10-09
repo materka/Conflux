@@ -1,46 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <android.support.design.widget.CoordinatorLayout
-        android:id="@+id/coordinator"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/coordinator"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <include layout="@layout/toolbar" />
-
-            <fragment
-                android:id="@+id/list_fragment"
-                android:name="se.materka.conflux.ui.list.ListFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </LinearLayout>
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/play"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/md_plus"
-            app:layout_anchor="@id/player_fragment"
-            app:layout_anchorGravity="top|end|right"
-            app:layout_behavior="se.materka.conflux.ui.FloatingActionButtonBehavior"
-            app:useCompatPadding="true" />
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"></FrameLayout>
         <fragment
-            android:id="@+id/player_fragment"
-            android:name="se.materka.conflux.ui.player.PlayerFragment"
+            android:id="@+id/list_fragment"
+            android:name="se.materka.conflux.ui.list.ListFragment"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            app:behavior_hideable="true"
-            app:behavior_peekHeight="0dp"
-            app:layout_behavior="android.support.design.widget.BottomSheetBehavior" />
-    </android.support.design.widget.CoordinatorLayout>
+            android:layout_height="match_parent" />
 
-</layout>
+    </android.support.v4.widget.NestedScrollView>
+
+    <include layout="@layout/toolbar" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/md_plus"
+        app:layout_anchor="@id/player_fragment"
+        app:layout_anchorGravity="top|end|right"
+        app:layout_behavior="se.materka.conflux.ui.FloatingActionButtonBehavior"
+        app:useCompatPadding="true" />
+
+    <fragment
+        android:id="@+id/player_fragment"
+        android:name="se.materka.conflux.ui.player.PlayerFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:behavior_hideable="true"
+        app:behavior_peekHeight="60dp"
+        app:layout_behavior="android.support.design.widget.BottomSheetBehavior" />
+
+</android.support.design.widget.CoordinatorLayout>
+
