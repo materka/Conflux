@@ -77,8 +77,9 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
     }
 
     override fun onPlaybackStateChanged(state: Int) {
-        val state = stateBuilder.setState(state, 0L, 0f).build()
-        setPlaybackState(state)
+        stateBuilder.setState(state, 0L, 0f).build().also {
+            setPlaybackState(it)
+        }
     }
 
     override fun onError(errorCode: Int, error: String) {
@@ -100,8 +101,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
                 .putString(ShoutcastMetadata.METADATA_KEY_STATION, metadata.getString(ShoutcastMetadata.METADATA_KEY_STATION))
                 .putString(ShoutcastMetadata.METADATA_KEY_URL, metadata.getString(ShoutcastMetadata.METADATA_KEY_URL))
 
-        ArtistArtService()
-                .setApiCredentials(getString(R.string.spotify_client_id), getString(R.string.spotify_client_secret))
+        ArtistArtService(getString(R.string.spotify_client_id), getString(R.string.spotify_client_secret))
                 .getArt(metadata.getString(ShoutcastMetadata.METADATA_KEY_ARTIST)) { uri ->
                     async(CommonPool) {
                         val bm = bg {

@@ -187,7 +187,7 @@ class Playback(service: MediaBrowserServiceCompat, private val callback: Callbac
             player.playWhenReady = false
             audioSource?.releaseSource()
 
-            callback?.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
+            callback.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
         }
 
         if (wifiLock.isHeld) {

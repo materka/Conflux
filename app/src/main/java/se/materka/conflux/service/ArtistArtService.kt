@@ -33,18 +33,8 @@ import timber.log.Timber
  * limitations under the License.
  */
 
-class ArtistArtService {
-    private var userName: String? = null
-    private var password: String? = null
-
+class ArtistArtService(private val userName: String, private val password: String) {
     private lateinit var callback: (Uri?) -> Unit
-
-
-    fun setApiCredentials(userName: String, password: String): ArtistArtService {
-        this.userName = userName
-        this.password = password
-        return this
-    }
 
     private val searchArtists: SpotifyCallback<ArtistsPager> = object : SpotifyCallback<ArtistsPager>() {
         override fun success(artist: ArtistsPager?, response: Response?) {
