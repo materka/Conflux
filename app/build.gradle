@@ -12,7 +12,7 @@ gradleLint {
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.1'
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "se.greenbird.conflux"
         minSdkVersion 21
