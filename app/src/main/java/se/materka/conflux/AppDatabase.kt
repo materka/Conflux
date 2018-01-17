@@ -4,8 +4,8 @@ import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.content.Context
-import se.materka.conflux.domain.Station
-import se.materka.conflux.domain.StationDao
+import se.materka.conflux.service.model.Station
+import se.materka.conflux.service.repository.StationRepository
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -23,9 +23,9 @@ import se.materka.conflux.domain.StationDao
  * limitations under the License.
  */
 
-@Database(entities = arrayOf(Station::class), version = 1)
+@Database(entities = [(Station::class)], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun stationDao(): StationDao
+    abstract fun stationRepository(): StationRepository
 
     companion object {
         private var db: AppDatabase? = null

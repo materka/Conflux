@@ -1,25 +1,20 @@
 package se.materka.conflux.ui
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
-import android.content.ComponentName
 import android.media.AudioManager
 import android.os.Bundle
 import android.support.design.widget.BottomSheetBehavior
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.session.MediaControllerCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
-import se.materka.conflux.PlayService
+import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.domain.Station
-import se.materka.conflux.ui.action.PlayFragment
-import se.materka.conflux.ui.list.ListViewModel
-import se.materka.conflux.ui.player.PlayerViewModel
-import timber.log.Timber
+import se.materka.conflux.service.model.Station
+import se.materka.conflux.view.ui.PlayFragment
+import se.materka.conflux.viewmodel.ListViewModel
+import se.materka.conflux.viewmodel.PlayerViewModel
 
 
 /**
@@ -40,40 +35,12 @@ import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
-    private val mediaBrowser: MediaBrowserCompat by lazy {
-        MediaBrowserCompat(this,
-                ComponentName(this, PlayService::class.java),
-                connectionCallback,
-                null)
-    }
-
     private val playerViewModel: PlayerViewModel by lazy {
-        ViewModelProviders.of(this).get(PlayerViewModel::class.java)
+        getViewModel<PlayerViewModel>()
     }
 
     private val listViewModel: ListViewModel by lazy {
-        ViewModelProviders.of(this).get(ListViewModel::class.java)
-    }
-
-    private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
-        override fun onConnected() {
-            // Create a MediaControllerCompat
-            MediaControllerCompat(this@MainActivity, mediaBrowser.sessionToken).let { controller ->
-                MediaControllerCompat.setMediaController(this@MainActivity, controller)
-                controller.registerCallback(playerViewModel.mediaControllerCallback)
-            }
-        }
-
-        override fun onConnectionSuspended() {
-            MediaControllerCompat.getMediaController(this@MainActivity)?.let { controller ->
-                controller.unregisterCallback(playerViewModel.mediaControllerCallback)
-                MediaControllerCompat.setMediaController(this@MainActivity, null)
-            }
-        }
-
-        override fun onConnectionFailed() {
-            Timber.e("connection failed")
-        }
+        getViewModel<ListViewModel>()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,21 +61,6 @@ class MainActivity : AppCompatActivity() {
         setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (!mediaBrowser.isConnected) {
-            mediaBrowser.connect()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (mediaBrowser.isConnected) {
-            mediaBrowser.disconnect()
-        }
-
-    }
-
     private fun showPlayDialog() {
         FullScreenDialogFragment.Builder(this@MainActivity)
                 .setTitle("Play")
@@ -122,7 +74,6 @@ class MainActivity : AppCompatActivity() {
                         listViewModel.saveStation(station)
                     }
                     playerViewModel.play(station)
-
                 }
                 .setConfirmButton("PLAY")
                 .build()

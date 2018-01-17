@@ -1,6 +1,7 @@
-package se.materka.conflux.ui.action
+package se.materka.conflux.view.ui
 
 import android.arch.lifecycle.ViewModelProviders
+import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
@@ -11,7 +12,9 @@ import com.franmontiel.fullscreendialog.FullScreenDialogContent
 import com.franmontiel.fullscreendialog.FullScreenDialogController
 import kotlinx.android.synthetic.main.fragment_edit.*
 import se.materka.conflux.R
-import se.materka.conflux.ui.list.ListViewModel
+import se.materka.conflux.databinding.FragmentEditBinding
+import se.materka.conflux.service.model.Station
+import se.materka.conflux.viewmodel.ListViewModel
 import se.materka.conflux.ui.Common
 
 /**
@@ -31,31 +34,26 @@ import se.materka.conflux.ui.Common
  */
 
 class EditFragment : Fragment(), FullScreenDialogContent {
-    private val listViewModel: ListViewModel? by lazy {
-        if (activity != null) ViewModelProviders.of(activity!!).get(ListViewModel::class.java) else null
-    }
 
-    private val station by lazy {
-        listViewModel?.selected?.value
+    private var station: Station? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (arguments != null) {
+            station = arguments!!.getParcelable(EditFragment.ARG_STATION)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_edit, container, false)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        text_name.setText(station?.name, TextView.BufferType.EDITABLE)
-        text_url.setText(station?.url, TextView.BufferType.EDITABLE)
+        val binding: FragmentEditBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_edit, container, false)
+        binding.station = station
+        return binding.root
     }
 
     override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
         view?.let {
             Common.hideKeyboard(context!!, it)
         }
-        station?.name = text_name.text.toString()
-        station?.url = text_url.text.toString()
-        listViewModel?.updateStation()
         return false
     }
 
@@ -66,5 +64,17 @@ class EditFragment : Fragment(), FullScreenDialogContent {
             Common.hideKeyboard(context!!, it)
         }
         return false
+    }
+
+    companion object {
+        val ARG_STATION = "station"
+
+        fun newInstance(station: String): EditFragment {
+            val fragment = EditFragment()
+            val args = Bundle()
+            args.putString(ARG_STATION, station)
+            fragment.arguments = args
+            return fragment
+        }
     }
 }

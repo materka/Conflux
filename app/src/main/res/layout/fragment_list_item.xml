@@ -3,7 +3,7 @@
 
     <data>
         <variable
-            name="station" type="se.materka.conflux.domain.Station" />
+            name="station" type="se.materka.conflux.service.model.Station" />
     </data>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

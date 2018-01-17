@@ -1,12 +1,14 @@
-package se.materka.conflux.ui.player
+package se.materka.conflux.view.ui
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+import android.content.ComponentName
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.app.AlertDialog
 import android.text.Editable
 import android.text.TextWatcher
@@ -15,10 +17,14 @@ import android.view.View
 import android.view.ViewGroup
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_player.*
+import org.koin.android.architecture.ext.getViewModel
+import se.materka.conflux.PlayService
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentPlayerBinding
 import se.materka.conflux.ui.MetadataBinding
+import se.materka.conflux.viewmodel.PlayerViewModel
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
+import timber.log.Timber
 import java.lang.IllegalArgumentException
 
 
@@ -40,15 +46,32 @@ import java.lang.IllegalArgumentException
 
 class PlayerFragment : Fragment() {
 
-    private val metadata = MetadataBinding()
-
-    private val playerViewModel: PlayerViewModel? by lazy {
-        if(activity != null) ViewModelProviders.of(activity!!).get(PlayerViewModel::class.java) else null
+    val viewModel: PlayerViewModel? by lazy {
+        activity?.getViewModel<PlayerViewModel>()
     }
+
+    val mediaControllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
+
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
+            viewModel?.onMetadataChanged(metadata)
+        }
+
+        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
+            viewModel?.onPlaybackStateChanged(state)
+        }
+    }
+    private val mediaBrowser: MediaBrowserCompat by lazy {
+        MediaBrowserCompat(context,
+                ComponentName(context, PlayService::class.java),
+                connectionCallback,
+                null)
+    }
+
+    private val metadata = MetadataBinding()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentPlayerBinding.inflate(inflater, container, false)
-        playerViewModel?.metadata?.observe(this, Observer {
+        viewModel?.metadata?.observe(this, Observer {
             text_artist.text = it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
             text_title.text = it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
             text_show.text = it?.getString(ShoutcastMetadata.METADATA_KEY_SHOW)
@@ -64,7 +87,7 @@ class PlayerFragment : Fragment() {
             }
         })
 
-        playerViewModel?.isPlaying?.observe(this, Observer { playing ->
+        viewModel?.isPlaying?.observe(this, Observer { playing ->
             if (playing == true) {
                 btn_toggle_play.apply {
                     showPause()
@@ -80,7 +103,7 @@ class PlayerFragment : Fragment() {
             }
         })
 
-        playerViewModel?.currentStation?.observe(this, Observer {
+        viewModel?.currentStation?.observe(this, Observer {
             val uri: Uri = Uri.parse(it?.url)
             try {
                 if (it?.url?.isEmpty() == true) throw IllegalArgumentException("URL is not set")
@@ -103,6 +126,43 @@ class PlayerFragment : Fragment() {
         text_title.addTextChangedListener(hideIfEmptyWatcher(text_title, true))
         text_show.addTextChangedListener(hideIfEmptyWatcher(text_show, true))
         btn_toggle_play.showPlay()
+    }
+
+
+    private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
+        override fun onConnected() {
+            // Create a MediaControllerCompat
+            MediaControllerCompat(context, mediaBrowser.sessionToken).let { controller ->
+                MediaControllerCompat.setMediaController(activity!!, controller)
+                controller.registerCallback(mediaControllerCallback)
+            }
+        }
+
+        override fun onConnectionSuspended() {
+            MediaControllerCompat.getMediaController(activity!!)?.let { controller ->
+                controller.unregisterCallback(mediaControllerCallback)
+                MediaControllerCompat.setMediaController(activity!!, null)
+            }
+        }
+
+        override fun onConnectionFailed() {
+            Timber.e("connection failed")
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!mediaBrowser.isConnected) {
+            mediaBrowser.connect()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (mediaBrowser.isConnected) {
+            mediaBrowser.disconnect()
+        }
+
     }
 
     private fun hideIfEmptyWatcher(view: View, hide: Boolean): TextWatcher {

@@ -29,11 +29,15 @@ kapt {
 }
 
 
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    // Koin
+    implementation 'com.android.support:support-v4:27.0.2'
+    compile 'org.koin:koin-android-architecture:0.8.0'
 
     // Support
     implementation "com.android.support:appcompat-v7:$support_version"

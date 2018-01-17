@@ -1,7 +1,8 @@
-package se.materka.conflux.domain
+package se.materka.conflux.service.repository
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
+import se.materka.conflux.service.model.Station
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -20,7 +21,7 @@ import android.arch.persistence.room.*
  */
 
 @Dao
-interface StationDao {
+interface StationRepository {
     @get:Query("SELECT * FROM station ORDER BY name ASC")
     val all: LiveData<List<Station>>
 

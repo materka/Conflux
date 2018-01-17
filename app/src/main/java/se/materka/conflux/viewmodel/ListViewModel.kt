@@ -1,15 +1,13 @@
-package se.materka.conflux.ui.list
+package se.materka.conflux.viewmodel
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
 import org.jetbrains.anko.coroutines.experimental.bg
 import se.materka.conflux.AppDatabase
-import se.materka.conflux.domain.Station
-import se.materka.conflux.domain.StationDao
+import se.materka.conflux.service.model.Station
+import se.materka.conflux.service.repository.StationRepository
 
 
 /**
@@ -28,11 +26,7 @@ import se.materka.conflux.domain.StationDao
  * limitations under the License.
  */
 
-class ListViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val dao: StationDao by lazy {
-        AppDatabase.Companion.instance(application).stationDao()
-    }
+class ListViewModel(application: Application, private val repository: StationRepository) : AndroidViewModel(application) {
 
     val selected = MutableLiveData<Station>()
 
@@ -41,16 +35,16 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getStations(): LiveData<List<Station>>? {
-        return dao.all
+        return repository.all
     }
 
     fun saveStation(): LiveData<Long> {
         val result = MutableLiveData<Long>()
         selected.value?.let { s ->
             bg {
-                val id = dao.insert(s)
+                val id = repository.insert(s)
                 if (id > -1) {
-                    selected.postValue(dao.get(id))
+                    selected.postValue(repository.get(id))
                 }
                 result.postValue(id)
             }
@@ -67,7 +61,7 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
         val result = MutableLiveData<Boolean>()
         selected.value?.let { station ->
             bg {
-                if (dao.delete(station) == 1) {
+                if (repository.delete(station) == 1) {
                     station.id = null
                     selected.postValue(station)
                     result.postValue(true)
@@ -82,7 +76,7 @@ class ListViewModel(application: Application) : AndroidViewModel(application) {
     fun updateStation() {
         selected.value?.let { station ->
             bg {
-                dao.update(station)
+                repository.update(station)
             }
         }
     }

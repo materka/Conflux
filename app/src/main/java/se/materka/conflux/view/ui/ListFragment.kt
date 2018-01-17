@@ -1,7 +1,6 @@
-package se.materka.conflux.ui.list
+package se.materka.conflux.view.ui
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -9,11 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_list.*
+import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.domain.Station
+import se.materka.conflux.service.model.Station
 import se.materka.conflux.ui.DividerItemDecoration
-import se.materka.conflux.ui.action.ActionFragment
-import se.materka.conflux.ui.player.PlayerViewModel
+import se.materka.conflux.view.adapter.ListAdapter
+import se.materka.conflux.viewmodel.ListViewModel
+import se.materka.conflux.viewmodel.PlayerViewModel
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -35,12 +36,12 @@ class ListFragment : Fragment() {
 
     private lateinit var listAdapter: ListAdapter
 
-    private val listViewModel: ListViewModel? by lazy {
-        if (activity != null) ViewModelProviders.of(activity!!).get(ListViewModel::class.java) else null
+    private val playerViewModel: PlayerViewModel? by lazy {
+        activity?.getViewModel<PlayerViewModel>()
     }
 
-    private val playerViewModel: PlayerViewModel? by lazy {
-        if (activity != null) ViewModelProviders.of(activity!!).get(PlayerViewModel::class.java) else null
+    private val listViewModel: ListViewModel? by lazy {
+        activity?.getViewModel<ListViewModel>()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -73,7 +74,7 @@ class ListFragment : Fragment() {
 
     private fun itemLongClicked(station: Station) {
         listViewModel?.select(station)
-        ActionFragment().show(activity?.supportFragmentManager, "ActionFragment")
+        ActionFragment.newInstance(station).show(activity?.supportFragmentManager, "ActionFragment")
     }
 
 }

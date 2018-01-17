@@ -13,7 +13,7 @@
 
         <fragment
             android:id="@+id/list_fragment"
-            android:name="se.materka.conflux.ui.list.ListFragment"
+            android:name="se.materka.conflux.view.ui.ListFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
@@ -33,7 +33,7 @@
 
     <fragment
         android:id="@+id/player_fragment"
-        android:name="se.materka.conflux.ui.player.PlayerFragment"
+        android:name="se.materka.conflux.view.ui.PlayerFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:behavior_hideable="true"

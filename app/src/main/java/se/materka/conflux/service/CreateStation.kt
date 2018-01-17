@@ -1,4 +1,7 @@
-package se.materka.conflux.domain
+package se.materka.conflux.service
+
+import se.materka.conflux.service.model.Station
+import se.materka.conflux.service.repository.StationRepository
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -16,7 +19,7 @@ package se.materka.conflux.domain
  * limitations under the License.
  */
 
-class CreateStation(val dao: StationDao) {
+class CreateStation(val repository: StationRepository) {
 
     fun call(): List<Long?> {
 
@@ -39,10 +42,10 @@ class CreateStation(val dao: StationDao) {
                 }
         )
         stations.forEach { station ->
-            dao.insert(station)
-            dao.insert(station)
-            dao.insert(station)
-            dao.insert(station)
+            repository.insert(station)
+            repository.insert(station)
+            repository.insert(station)
+            repository.insert(station)
         }
         return stations.map { it.id }
     }

@@ -1,4 +1,4 @@
-package se.materka.conflux.ui.action
+package se.materka.conflux.view.ui
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -29,7 +29,6 @@ import se.materka.conflux.ui.Common
 
 class PlayFragment : Fragment(), FullScreenDialogContent {
     private var dialogController: FullScreenDialogController? = null
-
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater?.inflate(R.layout.fragment_play, container, false)
