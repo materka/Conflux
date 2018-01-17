@@ -35,19 +35,19 @@ class ListFragment : Fragment() {
 
     private lateinit var listAdapter: ListAdapter
 
-    private val listViewModel: ListViewModel by lazy {
-        ViewModelProviders.of(activity).get(ListViewModel::class.java)
+    private val listViewModel: ListViewModel? by lazy {
+        if (activity != null) ViewModelProviders.of(activity!!).get(ListViewModel::class.java) else null
     }
 
-    private val playerViewModel: PlayerViewModel by lazy {
-        ViewModelProviders.of(activity).get(PlayerViewModel::class.java)
+    private val playerViewModel: PlayerViewModel? by lazy {
+        if (activity != null) ViewModelProviders.of(activity!!).get(PlayerViewModel::class.java) else null
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater?.inflate(R.layout.fragment_list, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         listAdapter = ListAdapter({ station -> itemClicked(station) },
@@ -59,7 +59,7 @@ class ListFragment : Fragment() {
             addItemDecoration(DividerItemDecoration(context, false, false))
         }
 
-        listViewModel.getStations()?.observe(this, Observer<List<Station>> { stations ->
+        listViewModel?.getStations()?.observe(this, Observer<List<Station>> { stations ->
             if (stations != null) {
                 listAdapter.updateDataSet(stations)
             }
@@ -67,13 +67,13 @@ class ListFragment : Fragment() {
     }
 
     private fun itemClicked(station: Station) {
-        listViewModel.select(station)
-        playerViewModel.play(station)
+        listViewModel?.select(station)
+        playerViewModel?.play(station)
     }
 
     private fun itemLongClicked(station: Station) {
-        listViewModel.select(station)
-        ActionFragment().show(activity.supportFragmentManager, "ActionFragment")
+        listViewModel?.select(station)
+        ActionFragment().show(activity?.supportFragmentManager, "ActionFragment")
     }
 
 }

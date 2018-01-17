@@ -20,8 +20,6 @@ import se.materka.conflux.databinding.FragmentPlayerBinding
 import se.materka.conflux.ui.MetadataBinding
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import java.lang.IllegalArgumentException
-import android.animation.LayoutTransition
-
 
 
 /**
@@ -44,13 +42,13 @@ class PlayerFragment : Fragment() {
 
     private val metadata = MetadataBinding()
 
-    private val playerViewModel: PlayerViewModel by lazy {
-        ViewModelProviders.of(activity).get(PlayerViewModel::class.java)
+    private val playerViewModel: PlayerViewModel? by lazy {
+        if(activity != null) ViewModelProviders.of(activity!!).get(PlayerViewModel::class.java) else null
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val binding = FragmentPlayerBinding.inflate(inflater, container, false)
-        playerViewModel.metadata.observe(this, Observer {
+        playerViewModel?.metadata?.observe(this, Observer {
             text_artist.text = it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
             text_title.text = it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
             text_show.text = it?.getString(ShoutcastMetadata.METADATA_KEY_SHOW)
@@ -66,29 +64,29 @@ class PlayerFragment : Fragment() {
             }
         })
 
-        playerViewModel.isPlaying.observe(this, Observer { playing ->
+        playerViewModel?.isPlaying?.observe(this, Observer { playing ->
             if (playing == true) {
                 btn_toggle_play.apply {
                     showPause()
-                    setOnClickListener { MediaControllerCompat.getMediaController(activity)?.transportControls?.stop() }
+                    setOnClickListener { MediaControllerCompat.getMediaController(activity!!)?.transportControls?.stop() }
                     image_cover.visibility = View.GONE
                     image_cover.setImageBitmap(null)
                 }
             } else {
                 btn_toggle_play.apply {
                     showPlay()
-                    setOnClickListener { MediaControllerCompat.getMediaController(activity)?.transportControls?.play() }
+                    setOnClickListener { MediaControllerCompat.getMediaController(activity!!)?.transportControls?.play() }
                 }
             }
         })
 
-        playerViewModel.currentStation.observe(this, Observer {
+        playerViewModel?.currentStation?.observe(this, Observer {
             val uri: Uri = Uri.parse(it?.url)
             try {
                 if (it?.url?.isEmpty() == true) throw IllegalArgumentException("URL is not set")
-                MediaControllerCompat.getMediaController(activity)?.transportControls?.playFromUri(uri, null)
+                MediaControllerCompat.getMediaController(activity!!)?.transportControls?.playFromUri(uri, null)
             } catch (e: IllegalArgumentException) {
-                AlertDialog.Builder(context, R.style.AppTheme_ErrorDialog)
+                AlertDialog.Builder(activity!!, R.style.AppTheme_ErrorDialog)
                         .setTitle("Error")
                         .setMessage(e.message)
                         .setNegativeButton("OK") { dialog, _ -> dialog.dismiss() }
@@ -100,7 +98,7 @@ class PlayerFragment : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         text_artist.addTextChangedListener(hideIfEmptyWatcher(text_artist, true))
         text_title.addTextChangedListener(hideIfEmptyWatcher(text_title, true))
         text_show.addTextChangedListener(hideIfEmptyWatcher(text_show, true))

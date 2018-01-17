@@ -30,11 +30,12 @@ import se.materka.conflux.ui.Common
 class PlayFragment : Fragment(), FullScreenDialogContent {
     private var dialogController: FullScreenDialogController? = null
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater?.inflate(R.layout.fragment_play, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toggle_save_container.setOnCheckedChangeListener { _, _ ->
             save_container.visibility =  if (save_container.visibility != View.GONE) View.GONE else View.VISIBLE
@@ -52,14 +53,14 @@ class PlayFragment : Fragment(), FullScreenDialogContent {
 
     override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
         view?.let {
-            Common.hideKeyboard(context, it)
+            Common.hideKeyboard(context!!, it)
         }
         return false
     }
 
     private fun onConfirm() {
         view?.let {
-            Common.hideKeyboard(context, it)
+            Common.hideKeyboard(context!!, it)
         }
         dialogController?.confirm(Bundle().apply {
             putString(EXTRA_STATION_URL, this@PlayFragment.url.text.toString())

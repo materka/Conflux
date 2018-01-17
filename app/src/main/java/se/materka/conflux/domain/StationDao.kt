@@ -24,13 +24,13 @@ interface StationDao {
     @get:Query("SELECT * FROM station ORDER BY name ASC")
     val all: LiveData<List<Station>>
 
-    @Query("SELECT * FROM station WHERE id IN (:stationIds)")
+    @Query("SELECT * FROM station WHERE id IN (:arg0)")
     fun loadAllByIds(stationIds: IntArray): LiveData<List<Station>>
 
-    @Query("SELECT * FROM station WHERE id = :id")
+    @Query("SELECT * FROM station WHERE id = :arg0")
     fun get(id: Long?): Station?
 
-    @Query("SELECT 1 FROM station WHERE id = :id")
+    @Query("SELECT 1 FROM station WHERE id = :arg0")
     fun exists(id: Long?): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

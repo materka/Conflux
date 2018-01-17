@@ -29,19 +29,19 @@ import se.materka.conflux.ui.list.ListViewModel
  */
 
 class InfoFragment : Fragment(), FullScreenDialogContent {
-    private val listViewModel: ListViewModel by lazy {
-        ViewModelProviders.of(activity).get(ListViewModel::class.java)
+    private val listViewModel: ListViewModel? by lazy {
+        if(activity != null) ViewModelProviders.of(activity!!).get(ListViewModel::class.java) else null
     }
 
     private val station by lazy {
-        listViewModel.selected.value
+        listViewModel?.selected?.value
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_info, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         text_name.text = station?.name
         text_url.text = station?.url

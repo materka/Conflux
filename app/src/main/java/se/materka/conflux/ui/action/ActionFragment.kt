@@ -29,47 +29,49 @@ import se.materka.conflux.ui.list.ListViewModel
  */
 
 class ActionFragment : BottomSheetDialogFragment() {
-    private val listViewModel: ListViewModel by lazy {
-        ViewModelProviders.of(activity).get(ListViewModel::class.java)
+    private val listViewModel: ListViewModel? by lazy {
+        if(activity != null) ViewModelProviders.of(activity!!).get(ListViewModel::class.java) else null
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.menu_action, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        info.setOnClickListener {
-            FullScreenDialogFragment.Builder(activity)
-                    .setTitle("Information")
-                    .setContent(InfoFragment::class.java, null)
-                    .build()
-                    .show(fragmentManager, "InfoFragment")
-            dismiss()
-        }
+        if (activity != null) {
+            info.setOnClickListener {
+                FullScreenDialogFragment.Builder(activity!!)
+                        .setTitle("Information")
+                        .setContent(InfoFragment::class.java, null)
+                        .build()
+                        .show(fragmentManager, "InfoFragment")
+                dismiss()
+            }
 
-        edit.setOnClickListener {
-            FullScreenDialogFragment.Builder(activity)
-                    .setTitle("Edit")
-                    .setContent(EditFragment::class.java, null)
-                    .setConfirmButton("SAVE")
-                    .build()
-                    .show(fragmentManager, "EditFragment")
-            dismiss()
-        }
+            edit.setOnClickListener {
+                FullScreenDialogFragment.Builder(activity!!)
+                        .setTitle("Edit")
+                        .setContent(EditFragment::class.java, null)
+                        .setConfirmButton("SAVE")
+                        .build()
+                        .show(fragmentManager, "EditFragment")
+                dismiss()
+            }
 
-        delete.setOnClickListener {
-            AlertDialog.Builder(context, R.style.AppTheme_WarningDialog)
-                    .setTitle("Remove")
-                    .setMessage("Are you sure you want to remove this station?")
-                    .setPositiveButton("REMOVE") { _, _ ->
-                        listViewModel.deleteStation()
-                        this@ActionFragment.dismiss()
-                    }
-                    .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
-                    .show()
-            dismiss()
+            delete.setOnClickListener {
+                AlertDialog.Builder(activity!!, R.style.AppTheme_WarningDialog)
+                        .setTitle("Remove")
+                        .setMessage("Are you sure you want to remove this station?")
+                        .setPositiveButton("REMOVE") { _, _ ->
+                            listViewModel?.deleteStation()
+                            this@ActionFragment.dismiss()
+                        }
+                        .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
+                        .show()
+                dismiss()
+            }
         }
     }
 }

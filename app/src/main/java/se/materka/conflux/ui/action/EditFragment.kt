@@ -31,19 +31,19 @@ import se.materka.conflux.ui.Common
  */
 
 class EditFragment : Fragment(), FullScreenDialogContent {
-    private val listViewModel: ListViewModel by lazy {
-        ViewModelProviders.of(activity).get(ListViewModel::class.java)
+    private val listViewModel: ListViewModel? by lazy {
+        if (activity != null) ViewModelProviders.of(activity!!).get(ListViewModel::class.java) else null
     }
 
     private val station by lazy {
-        listViewModel.selected.value
+        listViewModel?.selected?.value
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_edit, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         text_name.setText(station?.name, TextView.BufferType.EDITABLE)
         text_url.setText(station?.url, TextView.BufferType.EDITABLE)
@@ -51,11 +51,11 @@ class EditFragment : Fragment(), FullScreenDialogContent {
 
     override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
         view?.let {
-            Common.hideKeyboard(context, it)
+            Common.hideKeyboard(context!!, it)
         }
         station?.name = text_name.text.toString()
         station?.url = text_url.text.toString()
-        listViewModel.updateStation()
+        listViewModel?.updateStation()
         return false
     }
 
@@ -63,7 +63,7 @@ class EditFragment : Fragment(), FullScreenDialogContent {
 
     override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
         view?.let {
-            Common.hideKeyboard(context, it)
+            Common.hideKeyboard(context!!, it)
         }
         return false
     }

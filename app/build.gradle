@@ -1,51 +1,39 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'nebula.lint'
 
-gradleLint {
-    alwaysRun = false
-    rules  = ['dependency-parentheses']
-    criticalRules = ['unused-dependency'] // <-- this will fail the build in the event of a violation
-}
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
     defaultConfig {
-        applicationId "se.greenbird.conflux"
+        applicationId "se.materka.conflux"
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
     }
     buildTypes {
-        debug{
-            debuggable true
-            minifyEnabled false
-            useProguard false
-        }
         release {
-            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     dataBinding {
-        enabled = true
+        enabled true
     }
 }
 
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
+kapt {
+    generateStubs true
 }
+
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 
     // Support
     implementation "com.android.support:appcompat-v7:$support_version"
@@ -80,7 +68,6 @@ dependencies {
     implementation "org.jetbrains.anko:anko-coroutines:0.10.1"
 
     kapt "com.android.databinding:compiler:$gradle_build_tools_version"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'com.github.materka:exoplayer-shoutcast-datasource:2e1a849b87'
     implementation 'com.google.android.exoplayer:exoplayer-core:r2.5.0'
     implementation 'com.github.franmontiel:FullScreenDialog:1.0.1'
