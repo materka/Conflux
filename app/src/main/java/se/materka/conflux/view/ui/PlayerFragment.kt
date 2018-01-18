@@ -50,23 +50,6 @@ class PlayerFragment : Fragment() {
         activity?.getViewModel<PlayerViewModel>()
     }
 
-    val mediaControllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
-
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            viewModel?.onMetadataChanged(metadata)
-        }
-
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            viewModel?.onPlaybackStateChanged(state)
-        }
-    }
-    private val mediaBrowser: MediaBrowserCompat by lazy {
-        MediaBrowserCompat(context,
-                ComponentName(context, PlayService::class.java),
-                connectionCallback,
-                null)
-    }
-
     private val metadata = MetadataBinding()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -87,36 +70,6 @@ class PlayerFragment : Fragment() {
             }
         })
 
-        viewModel?.isPlaying?.observe(this, Observer { playing ->
-            if (playing == true) {
-                btn_toggle_play.apply {
-                    showPause()
-                    setOnClickListener { MediaControllerCompat.getMediaController(activity!!)?.transportControls?.stop() }
-                    image_cover.visibility = View.GONE
-                    image_cover.setImageBitmap(null)
-                }
-            } else {
-                btn_toggle_play.apply {
-                    showPlay()
-                    setOnClickListener { MediaControllerCompat.getMediaController(activity!!)?.transportControls?.play() }
-                }
-            }
-        })
-
-        viewModel?.currentStation?.observe(this, Observer {
-            val uri: Uri = Uri.parse(it?.url)
-            try {
-                if (it?.url?.isEmpty() == true) throw IllegalArgumentException("URL is not set")
-                MediaControllerCompat.getMediaController(activity!!)?.transportControls?.playFromUri(uri, null)
-            } catch (e: IllegalArgumentException) {
-                AlertDialog.Builder(activity!!, R.style.AppTheme_ErrorDialog)
-                        .setTitle("Error")
-                        .setMessage(e.message)
-                        .setNegativeButton("OK") { dialog, _ -> dialog.dismiss() }
-                        .show()
-            }
-        })
-
         binding.metadata = metadata
         return binding.root
     }
@@ -125,44 +78,6 @@ class PlayerFragment : Fragment() {
         text_artist.addTextChangedListener(hideIfEmptyWatcher(text_artist, true))
         text_title.addTextChangedListener(hideIfEmptyWatcher(text_title, true))
         text_show.addTextChangedListener(hideIfEmptyWatcher(text_show, true))
-        btn_toggle_play.showPlay()
-    }
-
-
-    private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
-        override fun onConnected() {
-            // Create a MediaControllerCompat
-            MediaControllerCompat(context, mediaBrowser.sessionToken).let { controller ->
-                MediaControllerCompat.setMediaController(activity!!, controller)
-                controller.registerCallback(mediaControllerCallback)
-            }
-        }
-
-        override fun onConnectionSuspended() {
-            MediaControllerCompat.getMediaController(activity!!)?.let { controller ->
-                controller.unregisterCallback(mediaControllerCallback)
-                MediaControllerCompat.setMediaController(activity!!, null)
-            }
-        }
-
-        override fun onConnectionFailed() {
-            Timber.e("connection failed")
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (!mediaBrowser.isConnected) {
-            mediaBrowser.connect()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (mediaBrowser.isConnected) {
-            mediaBrowser.disconnect()
-        }
-
     }
 
     private fun hideIfEmptyWatcher(view: View, hide: Boolean): TextWatcher {

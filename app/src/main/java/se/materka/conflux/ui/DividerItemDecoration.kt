@@ -8,9 +8,9 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
 
-class DividerItemDecoration(context: Context, val showFirstDivider: Boolean = false,
-                                    val showLastDivider: Boolean = false, divider: Drawable? = null) : RecyclerView.ItemDecoration() {
-    val divider: Drawable
+class DividerItemDecoration(context: Context, private val showFirstDivider: Boolean = false,
+                            private val showLastDivider: Boolean = false, divider: Drawable? = null) : RecyclerView.ItemDecoration() {
+    private val divider: Drawable
 
     init {
         if (divider == null) {
@@ -52,7 +52,7 @@ class DividerItemDecoration(context: Context, val showFirstDivider: Boolean = fa
         var bottom: Int
         var top: Int
 
-        for (i in (if (showFirstDivider) 0 else 1)..childCount - 1) {
+        for (i in (if (showFirstDivider) 0 else 1) until childCount) {
             val child = parent.getChildAt(i)
             val params = child.layoutParams as RecyclerView.LayoutParams
             if (isReverseLayout(parent)) {
@@ -86,7 +86,7 @@ class DividerItemDecoration(context: Context, val showFirstDivider: Boolean = fa
 
         var left: Int
         var right: Int
-        for (i in (if (showFirstDivider) 0 else 1)..childCount - 1) {
+        for (i in (if (showFirstDivider) 0 else 1) until childCount) {
             val child = parent.getChildAt(i)
             val params = child.layoutParams as RecyclerView.LayoutParams
 
