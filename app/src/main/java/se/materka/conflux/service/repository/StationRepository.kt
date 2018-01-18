@@ -1,45 +1,73 @@
 package se.materka.conflux.service.repository
 
 import android.arch.lifecycle.LiveData
-import android.arch.persistence.room.*
+import android.arch.lifecycle.MutableLiveData
+import org.jetbrains.anko.coroutines.experimental.bg
+import se.materka.conflux.service.datasource.StationDataSource
 import se.materka.conflux.service.model.Station
 
 /**
- * Copyright 2017 Mattias Karlsson
-
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
-
- * http://www.apache.org/licenses/LICENSE-2.0
-
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Created by Mattias on 1/18/2018.
  */
 
-@Dao
 interface StationRepository {
-    @get:Query("SELECT * FROM station ORDER BY name ASC")
-    val all: LiveData<List<Station>>
+    fun create(station: Station): LiveData<Long>
+    fun read(): LiveData<List<Station>>
+    fun read(stationId: Long): LiveData<Station>
+    fun read(stationIds: LongArray): LiveData<List<Station>>
+    fun update(station: Station): LiveData<Boolean>
+    fun delete(station: Station): LiveData<Boolean>
+    fun exists(station: Station): LiveData<Boolean>
 
-    @Query("SELECT * FROM station WHERE id IN (:arg0)")
-    fun loadAllByIds(stationIds: IntArray): LiveData<List<Station>>
+}
 
-    @Query("SELECT * FROM station WHERE id = :arg0")
-    fun get(id: Long?): Station?
+class StationRepositoryImpl(private val dataSource: StationDataSource): StationRepository {
 
-    @Query("SELECT 1 FROM station WHERE id = :arg0")
-    fun exists(id: Long?): Int
+    override fun create(station: Station): MutableLiveData<Long> {
+        val id: MutableLiveData<Long> = MutableLiveData()
+        bg {
+            id.postValue(dataSource.insert(station))
+        }
+        return id
+    }
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(station: Station): Long
+    override fun read(): LiveData<List<Station>> {
+        return dataSource.select()
+    }
 
-    @Update
-    fun update(station: Station): Int
+    override fun read(stationIds: LongArray): LiveData<List<Station>> {
+        return dataSource.select(stationIds)
+    }
 
-    @Delete
-    fun delete(station: Station): Int
+    override fun read(stationId: Long): LiveData<Station> {
+        val station: MutableLiveData<Station> = MutableLiveData()
+        bg {
+            station.postValue(dataSource.select(stationId))
+        }
+        return station
+    }
+
+    override fun update(station: Station): LiveData<Boolean> {
+        val updated: MutableLiveData<Boolean> = MutableLiveData()
+        bg {
+            updated.postValue(dataSource.update(station) > 0)
+        }
+        return updated
+    }
+
+    override fun delete(station: Station): LiveData<Boolean> {
+        val deleted = MutableLiveData<Boolean>()
+        bg {
+            deleted.postValue(dataSource.delete(station) == 1)
+        }
+        return deleted
+    }
+
+    override fun exists(station: Station): LiveData<Boolean> {
+        val exists = MutableLiveData<Boolean>()
+        bg {
+            exists.postValue(dataSource.exists(station.id) == 1)
+        }
+        return exists
+    }
 }

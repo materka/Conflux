@@ -5,7 +5,7 @@ import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.content.Context
 import se.materka.conflux.service.model.Station
-import se.materka.conflux.service.repository.StationRepository
+import se.materka.conflux.service.datasource.StationDataSource
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -25,7 +25,7 @@ import se.materka.conflux.service.repository.StationRepository
 
 @Database(entities = [(Station::class)], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun stationRepository(): StationRepository
+    abstract fun stationDataSource(): StationDataSource
 
     companion object {
         private var db: AppDatabase? = null

@@ -6,7 +6,6 @@ import android.arch.lifecycle.MutableLiveData
 import android.graphics.Bitmap
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import org.jetbrains.anko.coroutines.experimental.bg
 import se.materka.conflux.service.model.Station
 import se.materka.conflux.service.repository.StationRepository
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
@@ -40,12 +39,12 @@ class PlayerViewModel(application: Application, private val stationRepository: S
         metadata.value = data
         artistArt.value = data?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
         currentStation.value?.let { station ->
-            if (station.isPersisted) {
-                station.bitrate = data?.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE)
-                station.format = data?.getString(ShoutcastMetadata.METADATA_KEY_FORMAT)
-                bg {
-                    stationRepository.update(station)
-                }
+            val bitrate = data?.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE)
+            val format = data?.getString(ShoutcastMetadata.METADATA_KEY_FORMAT)
+            if (station.isPersisted && (station.bitrate != bitrate || station.format != format)) {
+                station.bitrate = bitrate
+                station.format = format
+                stationRepository.update(station)
             }
         }
     }

@@ -1,4 +1,4 @@
-package se.materka.conflux
+package se.materka.conflux.service.play
 
 import android.app.Notification
 import android.content.Context
@@ -9,6 +9,7 @@ import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import se.materka.conflux.R
 
 /**
  * Copyright 2017 Mattias Karlsson

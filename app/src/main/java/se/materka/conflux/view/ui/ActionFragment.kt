@@ -11,7 +11,7 @@ import kotlinx.android.synthetic.main.menu_action.*
 import org.koin.android.ext.android.inject
 import se.materka.conflux.R
 import se.materka.conflux.service.model.Station
-import se.materka.conflux.service.repository.StationRepository
+import se.materka.conflux.service.datasource.StationDataSource
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -33,7 +33,7 @@ class ActionFragment : BottomSheetDialogFragment() {
 
     private var station: Station? = null
 
-    private val stationRepository: StationRepository by inject()
+    private val stationRepository: StationDataSource by inject()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         if (arguments != null) {

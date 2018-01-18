@@ -1,4 +1,4 @@
-package se.materka.conflux
+package se.materka.conflux.service.play
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -20,6 +20,8 @@ import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.util.Util
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
+import se.materka.conflux.AudioFocusManager
+import se.materka.conflux.R
 import se.materka.conflux.service.PlaylistService
 import se.materka.exoplayershoutcastdatasource.ShoutcastDataSourceFactory
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata

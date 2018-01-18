@@ -1,5 +1,6 @@
 package se.materka.conflux.view.ui
 
+import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
@@ -9,7 +10,9 @@ import com.franmontiel.fullscreendialog.FullScreenDialogContent
 import com.franmontiel.fullscreendialog.FullScreenDialogController
 import kotlinx.android.synthetic.main.fragment_play.*
 import se.materka.conflux.R
-import se.materka.conflux.ui.Common
+import se.materka.conflux.databinding.FragmentPlayBinding
+import se.materka.conflux.service.model.Station
+import se.materka.conflux.ui.hideKeyboard
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -29,16 +32,20 @@ import se.materka.conflux.ui.Common
 
 class PlayFragment : Fragment(), FullScreenDialogContent {
     private var dialogController: FullScreenDialogController? = null
+    private val station: Station = Station()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater?.inflate(R.layout.fragment_play, container, false)
+        val binding: FragmentPlayBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_play, container, false)
+        binding.station = station
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toggle_save_container.setOnCheckedChangeListener { _, _ ->
-            save_container.visibility =  if (save_container.visibility != View.GONE) View.GONE else View.VISIBLE
+            save_container.visibility = if (save_container.visibility != View.GONE) View.GONE else View.VISIBLE
         }
+        save_and_play.setOnClickListener { onConfirm() }
     }
 
     override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
@@ -51,26 +58,20 @@ class PlayFragment : Fragment(), FullScreenDialogContent {
     }
 
     override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
-        view?.let {
-            Common.hideKeyboard(context!!, it)
-        }
+        view?.hideKeyboard()
         return false
     }
 
     private fun onConfirm() {
-        view?.let {
-            Common.hideKeyboard(context!!, it)
-        }
+        view?.hideKeyboard()
         dialogController?.confirm(Bundle().apply {
-            putString(EXTRA_STATION_URL, this@PlayFragment.url.text.toString())
-            putString(EXTRA_STATION_NAME, this@PlayFragment.url.text.toString())
+            putParcelable(EXTRA_STATION, station)
             putBoolean(EXTRA_SAVE_STATION, toggle_save_container.isChecked)
         })
     }
 
     companion object {
-        val EXTRA_STATION_URL: String = "se.materka.conflux.STATION_URL"
-        val EXTRA_STATION_NAME: String = "se.materka.conflux.STATION_NAME"
+        val EXTRA_STATION: String = "se.materka.conflux.STATION"
         val EXTRA_SAVE_STATION: String = "se.materka.conflux.SAVE_STATION"
     }
 }

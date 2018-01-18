@@ -1,6 +1,7 @@
 package se.materka.conflux.service
 
 import se.materka.conflux.service.model.Station
+import se.materka.conflux.service.datasource.StationDataSource
 import se.materka.conflux.service.repository.StationRepository
 
 /**
@@ -19,7 +20,7 @@ import se.materka.conflux.service.repository.StationRepository
  * limitations under the License.
  */
 
-class CreateStation(val repository: StationRepository) {
+class CreateStation(val repository: StationDataSource) {
 
     fun call(): List<Long?> {
 

@@ -4,8 +4,6 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import org.jetbrains.anko.coroutines.experimental.bg
-import se.materka.conflux.AppDatabase
 import se.materka.conflux.service.model.Station
 import se.materka.conflux.service.repository.StationRepository
 
@@ -28,56 +26,25 @@ import se.materka.conflux.service.repository.StationRepository
 
 class ListViewModel(application: Application, private val repository: StationRepository) : AndroidViewModel(application) {
 
-    val selected = MutableLiveData<Station>()
+    private val selected = MutableLiveData<Station>()
 
     fun select(station: Station?) {
         selected.value = station
     }
 
     fun getStations(): LiveData<List<Station>>? {
-        return repository.all
-    }
-
-    fun saveStation(): LiveData<Long> {
-        val result = MutableLiveData<Long>()
-        selected.value?.let { s ->
-            bg {
-                val id = repository.insert(s)
-                if (id > -1) {
-                    selected.postValue(repository.get(id))
-                }
-                result.postValue(id)
-            }
-        }
-        return result
+        return repository.read()
     }
 
     fun saveStation(station: Station): LiveData<Long> {
-        selected.value = station
-        return saveStation()
+        return repository.create(station)
     }
 
     fun deleteStation(): LiveData<Boolean> {
-        val result = MutableLiveData<Boolean>()
-        selected.value?.let { station ->
-            bg {
-                if (repository.delete(station) == 1) {
-                    station.id = null
-                    selected.postValue(station)
-                    result.postValue(true)
-                } else {
-                    result.postValue(false)
-                }
-            }
-        }
-        return result
+        return repository.delete(selected.value!!)
     }
 
     fun updateStation() {
-        selected.value?.let { station ->
-            bg {
-                repository.update(station)
-            }
-        }
+        selected.value?.let { repository.update(it) }
     }
 }

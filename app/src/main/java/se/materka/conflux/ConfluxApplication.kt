@@ -7,6 +7,7 @@ import kotlinx.coroutines.experimental.async
 import org.jetbrains.anko.coroutines.experimental.asReference
 import org.koin.android.ext.android.startKoin
 import se.materka.conflux.module.BaseModule
+import se.materka.conflux.module.ListModule
 import se.materka.conflux.module.PlayerModule
 import se.materka.conflux.service.CreateStation
 import timber.log.Timber
@@ -16,7 +17,7 @@ class ConfluxApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        startKoin(this, listOf(BaseModule, PlayerModule))
+        startKoin(this, listOf(BaseModule, ListModule, PlayerModule))
 
         if (BuildConfig.DEBUG) {
             Stetho.initializeWithDefaults(this)
@@ -24,7 +25,7 @@ class ConfluxApplication : Application() {
 
             asReference().let { ref ->
                 async(CommonPool) {
-                    CreateStation(AppDatabase.instance(ref()).stationRepository()).call()
+                    CreateStation(AppDatabase.instance(ref()).stationDataSource()).call()
                 }
             }
 

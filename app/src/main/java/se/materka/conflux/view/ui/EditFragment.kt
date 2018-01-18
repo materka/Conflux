@@ -1,21 +1,17 @@
 package se.materka.conflux.view.ui
 
-import android.arch.lifecycle.ViewModelProviders
 import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import com.franmontiel.fullscreendialog.FullScreenDialogContent
 import com.franmontiel.fullscreendialog.FullScreenDialogController
-import kotlinx.android.synthetic.main.fragment_edit.*
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentEditBinding
 import se.materka.conflux.service.model.Station
-import se.materka.conflux.viewmodel.ListViewModel
-import se.materka.conflux.ui.Common
+import se.materka.conflux.ui.hideKeyboard
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -51,18 +47,14 @@ class EditFragment : Fragment(), FullScreenDialogContent {
     }
 
     override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
-        view?.let {
-            Common.hideKeyboard(context!!, it)
-        }
+        view?.hideKeyboard()
         return false
     }
 
     override fun onDialogCreated(dialogController: FullScreenDialogController?) {}
 
     override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
-        view?.let {
-            Common.hideKeyboard(context!!, it)
-        }
+        view?.hideKeyboard()
         return false
     }
 

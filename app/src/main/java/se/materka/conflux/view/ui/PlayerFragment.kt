@@ -18,7 +18,7 @@ import android.view.ViewGroup
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_player.*
 import org.koin.android.architecture.ext.getViewModel
-import se.materka.conflux.PlayService
+import se.materka.conflux.service.play.PlayService
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentPlayerBinding
 import se.materka.conflux.ui.MetadataBinding
@@ -70,7 +70,7 @@ class PlayerFragment : Fragment() {
     private val metadata = MetadataBinding()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val binding = FragmentPlayerBinding.inflate(inflater, container, false)
+        val binding: FragmentPlayerBinding = FragmentPlayerBinding.inflate(inflater, container, false)
         viewModel?.metadata?.observe(this, Observer {
             text_artist.text = it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
             text_title.text = it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)

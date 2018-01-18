@@ -66,11 +66,8 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Play")
                 .setContent(PlayFragment::class.java, null)
                 .setOnConfirmListener { bundle ->
-                    val station: Station = Station().apply {
-                        url = bundle?.getString(PlayFragment.EXTRA_STATION_URL)
-                        name = bundle?.getString(PlayFragment.EXTRA_STATION_NAME, "")
-                    }
-                    if (bundle?.getBoolean(PlayFragment.EXTRA_SAVE_STATION, false) == true) {
+                    val station: Station? = bundle?.getParcelable(PlayFragment.EXTRA_STATION)
+                    if (bundle?.getBoolean(PlayFragment.EXTRA_SAVE_STATION, false) == true && station != null) {
                         listViewModel.saveStation(station)
                     }
                     playerViewModel.play(station)

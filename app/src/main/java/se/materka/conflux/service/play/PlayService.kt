@@ -1,4 +1,4 @@
-package se.materka.conflux
+package se.materka.conflux.service.play
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -16,9 +16,9 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
 import org.jetbrains.anko.coroutines.experimental.bg
+import se.materka.conflux.R
 import se.materka.conflux.service.ArtistArtService
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import timber.log.Timber
@@ -171,7 +171,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
         try {
             mediaSession.setPlaybackState(state)
         } catch (e: IllegalStateException) {
-            // TODO: Investigate why for some unknown reason we occasionally get an exception for
+            // TODO: Investigate why for some unknown reason we occasionally select an exception for
             // "beginBroadcast() called while already in a broadast"
             Timber.e(e)
         }
@@ -198,7 +198,7 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
              * (It can only be removed using stopForeground(true))
              * So we use Media Style cancel button to send ACTION_STOP only if the media session is inactive.
              * Which means the playback has already been stopped once, and this second call indicate the user
-             * wants to get rid of the notification.
+             * wants to select rid of the notification.
              */
             if (!mediaSession.isActive) {
                 stopForeground(true)
