@@ -1,7 +1,12 @@
 package se.materka.conflux.service.play
 
+import android.annotation.SuppressLint
 import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.graphics.Color
+import android.os.Build
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -10,6 +15,8 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import se.materka.conflux.R
+import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
+
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -29,30 +36,56 @@ import se.materka.conflux.R
 
 object PlayNotification {
 
-    private val DEFAULT_CHANNEL_ID: String = "miscellaneous"
-
     fun buildNotification(context: Context, mediaSession: MediaSessionCompat): Notification {
         val builder = getBuilder(context, mediaSession)
         val style = getMediaStyle(context, mediaSession)
         return builder.setStyle(style).build()
     }
 
+    @SuppressLint("NewApi")
+    private fun getNotificationChannel(context: Context): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val mNotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            // The id of the channel.
+            val id = "my_channel_01"
+            // The user-visible name of the channel.
+            val name = "Conflux"
+            // The user-visible description of the channel.
+            val description = "Conflux Player"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val mChannel = NotificationChannel(id, name, importance)
+            // Configure the notification channel.
+            mChannel.description = description
+            mChannel.enableLights(true)
+            // Sets the notification light color for notifications posted to this
+            // channel, if the device supports this feature.
+            mChannel.lightColor = Color.RED
+            mChannel.enableVibration(true)
+            mChannel.vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
+            mNotificationManager.createNotificationChannel(mChannel)
+            id
+        } else {
+            NotificationChannel.DEFAULT_CHANNEL_ID
+        }
+    }
+
     private fun getBuilder(context: Context, mediaSession: MediaSessionCompat): NotificationCompat.Builder {
         val controller: MediaControllerCompat = mediaSession.controller
         val mediaMetadata: MediaMetadataCompat? = controller.metadata
 
-        return NotificationCompat.Builder(context, DEFAULT_CHANNEL_ID).apply {
+        return NotificationCompat.Builder(context, getNotificationChannel(context)).apply {
             color = ContextCompat.getColor(context, R.color.primary_dark)
 
-            setContentTitle(mediaMetadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE))
-            setContentText(mediaMetadata?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST))
-            setSubText(mediaMetadata?.getString(MediaMetadataCompat.METADATA_KEY_TITLE))
+            setContentTitle(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
+            setContentText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
+            setSubText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
             setLargeIcon(mediaMetadata?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART))
             setSmallIcon(R.drawable.md_play)
             setOngoing(mediaSession.isActive)
             setContentIntent(controller.sessionActivity)
             setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context.applicationContext, PlaybackStateCompat.ACTION_STOP))
             setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            setOnlyAlertOnce(true)
             addAction(getAction(context, mediaSession))
         }
     }
