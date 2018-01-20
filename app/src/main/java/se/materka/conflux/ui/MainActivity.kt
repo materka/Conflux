@@ -84,9 +84,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onConnectionSuspended() {
-            MediaControllerCompat.getMediaController(this@MainActivity)?.let { controller ->
+            MediaControllerCompat.getMediaController(this@MainActivity).let { controller ->
                 controller.unregisterCallback(mediaControllerCallback)
-                MediaControllerCompat.setMediaController(this@MainActivity, null)
             }
         }
 
@@ -144,13 +143,6 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         if (!mediaBrowser.isConnected) {
             mediaBrowser.connect()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (mediaBrowser.isConnected) {
-            mediaBrowser.disconnect()
         }
     }
 
