@@ -270,7 +270,7 @@ class PlaybackService(service: MediaBrowserServiceCompat, private val callback: 
             wifiLock.acquire()
 
             // Prevent CPU from going to sleep while screen is off
-            wakeLock.acquire()
+            wakeLock.acquire(1000)
 
             callback.onPlaybackStateChanged(PlaybackStateCompat.STATE_BUFFERING)
 
