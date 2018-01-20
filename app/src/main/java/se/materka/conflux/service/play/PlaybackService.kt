@@ -48,7 +48,7 @@ import java.util.*
  * limitations under the License.
  */
 
-class Playback(service: MediaBrowserServiceCompat, private val callback: Callback) : Player.EventListener,
+class PlaybackService(service: MediaBrowserServiceCompat, private val callback: Callback) : Player.EventListener,
         ShoutcastMetadataListener {
 
     companion object {
@@ -77,7 +77,7 @@ class Playback(service: MediaBrowserServiceCompat, private val callback: Callbac
     private val player: SimpleExoPlayer by lazy {
         ExoPlayerFactory.newSimpleInstance(context,
                 DefaultTrackSelector()).apply {
-            addListener(this@Playback)
+            addListener(this@PlaybackService)
             audioAttributes = AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.CONTENT_TYPE_MUSIC)

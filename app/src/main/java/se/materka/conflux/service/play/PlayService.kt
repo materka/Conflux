@@ -41,9 +41,9 @@ import java.lang.IllegalStateException
  * limitations under the License.
  */
 
-class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
+class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
 
-    private val SERVICE_ID: Int = 42
+    private val SERVICE_ID: Int = 1
 
     private val mediaSession: MediaSessionCompat by lazy {
         MediaSessionCompat(this@PlayService, PlayService::class.java.name).apply {
@@ -72,8 +72,8 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
 
     private var audioBecomingNoisyReceiver: BecomingNoisyReceiver? = null
 
-    private val player: Playback by lazy {
-        Playback(this, this@PlayService)
+    private val player: PlaybackService by lazy {
+        PlaybackService(this, this@PlayService)
     }
 
     override fun onPlaybackStateChanged(state: Int) {
@@ -92,8 +92,8 @@ class PlayService : MediaBrowserServiceCompat(), Playback.Callback {
 
     override fun onMetadataReceived(metadata: ShoutcastMetadata) {
         val mediaMetadataBuilder: MediaMetadataCompat.Builder = metadataBuilder
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, metadata.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, metadata.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
+                .putString(ShoutcastMetadata.METADATA_KEY_TITLE, metadata.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
+                .putString(ShoutcastMetadata.METADATA_KEY_ARTIST, metadata.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
                 .putString(ShoutcastMetadata.METADATA_KEY_SHOW, metadata.getString(ShoutcastMetadata.METADATA_KEY_SHOW))
                 .putLong(ShoutcastMetadata.METADATA_KEY_BITRATE, metadata.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE))
                 .putLong(ShoutcastMetadata.METADATA_KEY_CHANNELS, metadata.getLong(ShoutcastMetadata.METADATA_KEY_CHANNELS))

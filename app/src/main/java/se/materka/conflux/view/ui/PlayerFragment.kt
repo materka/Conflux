@@ -1,15 +1,9 @@
 package se.materka.conflux.view.ui
 
 import android.arch.lifecycle.Observer
-import android.content.ComponentName
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v7.app.AlertDialog
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -18,14 +12,10 @@ import android.view.ViewGroup
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_player.*
 import org.koin.android.architecture.ext.getViewModel
-import se.materka.conflux.service.play.PlayService
-import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentPlayerBinding
 import se.materka.conflux.ui.MetadataBinding
 import se.materka.conflux.viewmodel.PlayerViewModel
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
-import timber.log.Timber
-import java.lang.IllegalArgumentException
 
 
 /**
