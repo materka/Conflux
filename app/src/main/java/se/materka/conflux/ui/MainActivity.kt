@@ -21,7 +21,7 @@ import kotlinx.android.synthetic.main.toolbar.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.service.model.Station
-import se.materka.conflux.service.play.PlayService
+import se.materka.conflux.service.play.MediaBrowserService
 import se.materka.conflux.view.ui.PlayFragment
 import se.materka.conflux.viewmodel.ListViewModel
 import se.materka.conflux.viewmodel.PlayerViewModel
@@ -57,9 +57,13 @@ class MainActivity : AppCompatActivity() {
 
     private val mediaBrowser: MediaBrowserCompat by lazy {
         MediaBrowserCompat(this,
-                ComponentName(this, PlayService::class.java),
+                ComponentName(this, MediaBrowserService::class.java),
                 connectionCallback,
                 null)
+    }
+
+    private val mediaController: MediaControllerCompat by lazy {
+        MediaControllerCompat(this@MainActivity, mediaBrowser.sessionToken)
     }
 
     val mediaControllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
@@ -77,16 +81,12 @@ class MainActivity : AppCompatActivity() {
     private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
             // Create a MediaControllerCompat
-            MediaControllerCompat(applicationContext, mediaBrowser.sessionToken).let { controller ->
-                MediaControllerCompat.setMediaController(this@MainActivity, controller)
-                controller.registerCallback(mediaControllerCallback)
-            }
+            MediaControllerCompat.setMediaController(this@MainActivity, mediaController)
+            mediaController.registerCallback(mediaControllerCallback)
         }
 
         override fun onConnectionSuspended() {
-            MediaControllerCompat.getMediaController(this@MainActivity).let { controller ->
-                controller.unregisterCallback(mediaControllerCallback)
-            }
+            mediaController.unregisterCallback(mediaControllerCallback)
         }
 
         override fun onConnectionFailed() {
@@ -107,7 +107,7 @@ class MainActivity : AppCompatActivity() {
                 setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
                 btn_toggle_play.apply {
                     showPause()
-                    setOnClickListener { MediaControllerCompat.getMediaController(this@MainActivity)?.transportControls?.stop() }
+                    setOnClickListener { mediaController.transportControls?.stop() }
                     image_cover.visibility = View.GONE
                     image_cover.setImageBitmap(null)
 
@@ -116,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                 setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
                 btn_toggle_play.apply {
                     showPlay()
-                    setOnClickListener { MediaControllerCompat.getMediaController(this@MainActivity)?.transportControls?.play() }
+                    setOnClickListener { mediaController.transportControls?.play() }
                 }
             }
         })
@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity() {
             val uri: Uri = Uri.parse(it?.url)
             try {
                 if (it?.url?.isEmpty() == true) throw IllegalArgumentException("URL is not set")
-                MediaControllerCompat.getMediaController(this)?.transportControls?.playFromUri(uri, null)
+                mediaController.transportControls?.playFromUri(uri, null)
             } catch (e: IllegalArgumentException) {
                 AlertDialog.Builder(this, R.style.AppTheme_ErrorDialog)
                         .setTitle("Error")

@@ -23,6 +23,8 @@ import se.materka.conflux.service.ArtistArtService
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import timber.log.Timber
 import java.lang.IllegalStateException
+import android.app.PendingIntent
+import se.materka.conflux.ui.MainActivity
 
 
 /**
@@ -41,12 +43,21 @@ import java.lang.IllegalStateException
  * limitations under the License.
  */
 
-class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
+class MediaBrowserService : MediaBrowserServiceCompat(), PlaybackService.Callback {
 
-    private val SERVICE_ID: Int = 1
+    companion object {
+        val SERVICE_ID: Int = 1
+    }
 
     private val mediaSession: MediaSessionCompat by lazy {
-        MediaSessionCompat(this@PlayService, PlayService::class.java.name).apply {
+
+        val notificationIntent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val intent = PendingIntent.getActivity(applicationContext, 0,
+                notificationIntent, 0)
+        MediaSessionCompat(this@MediaBrowserService, MediaBrowserService::class.java.name).apply {
+            setSessionActivity(intent)
             setPlaybackState(stateBuilder.build())
             setCallback(MediaSessionCallback())
             setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
@@ -60,10 +71,6 @@ class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
                         or PlaybackStateCompat.ACTION_STOP)
     }
 
-    private val metadataBuilder: MediaMetadataCompat.Builder by lazy {
-        MediaMetadataCompat.Builder()
-    }
-
     private val notificationManager: NotificationManagerCompat by lazy {
         NotificationManagerCompat.from(applicationContext)
     }
@@ -73,7 +80,7 @@ class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
     private var audioBecomingNoisyReceiver: BecomingNoisyReceiver? = null
 
     private val player: PlaybackService by lazy {
-        PlaybackService(this, this@PlayService)
+        PlaybackService(this, this@MediaBrowserService)
     }
 
     override fun onPlaybackStateChanged(state: Int) {
@@ -91,7 +98,7 @@ class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
     }
 
     override fun onMetadataReceived(metadata: ShoutcastMetadata) {
-        val mediaMetadataBuilder: MediaMetadataCompat.Builder = metadataBuilder
+        val mediaMetadataBuilder: MediaMetadataCompat.Builder = MediaMetadataCompat.Builder()
                 .putString(ShoutcastMetadata.METADATA_KEY_TITLE, metadata.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
                 .putString(ShoutcastMetadata.METADATA_KEY_ARTIST, metadata.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
                 .putString(ShoutcastMetadata.METADATA_KEY_SHOW, metadata.getString(ShoutcastMetadata.METADATA_KEY_SHOW))
@@ -106,7 +113,7 @@ class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
                     async(CommonPool) {
                         val bm = bg {
                             Picasso
-                                    .with(this@PlayService)
+                                    .with(this@MediaBrowserService)
                                     .load(uri)
                                     .placeholder(R.drawable.md_streaming_radio)
                                     .get()
@@ -116,11 +123,11 @@ class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
                                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bm.await())
                                 .build()
                         mediaSession.setMetadata(mediaMetadata)
-                        notificationManager.notify(SERVICE_ID, PlayNotification.buildNotification(this@PlayService, mediaSession))
+                        notificationManager.notify(SERVICE_ID, NotificationHelper.build(this@MediaBrowserService, mediaSession))
                     }
                 }
         mediaSession.setMetadata(mediaMetadataBuilder.build())
-        notificationManager.notify(SERVICE_ID, PlayNotification.buildNotification(this, mediaSession))
+        notificationManager.notify(SERVICE_ID, NotificationHelper.build(this, mediaSession))
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
@@ -156,7 +163,7 @@ class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
             player.play()
         }
         mediaSession.isActive = true
-        startForeground(SERVICE_ID, PlayNotification.buildNotification(this, mediaSession))
+        startForeground(SERVICE_ID, NotificationHelper.build(this, mediaSession))
     }
 
     private fun handleStopRequest(releasePlayer: Boolean = false) {
@@ -164,7 +171,7 @@ class PlayService : MediaBrowserServiceCompat(), PlaybackService.Callback {
         mediaSession.isActive = false
         audioBecomingNoisyReceiver?.let { unregisterReceiver(it) }
         stopForeground(false)
-        notificationManager.notify(SERVICE_ID, PlayNotification.buildNotification(this, mediaSession))
+        notificationManager.notify(SERVICE_ID, NotificationHelper.build(this, mediaSession))
     }
 
     private fun setPlaybackState(state: PlaybackStateCompat) {

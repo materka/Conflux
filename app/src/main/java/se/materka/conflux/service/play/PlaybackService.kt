@@ -48,7 +48,7 @@ import java.util.*
  * limitations under the License.
  */
 
-class PlaybackService(service: MediaBrowserServiceCompat, private val callback: Callback) : Player.EventListener,
+class PlaybackService(mediaBrowser: MediaBrowserServiceCompat, private val callback: Callback) : Player.EventListener,
         ShoutcastMetadataListener {
 
     companion object {
@@ -65,7 +65,7 @@ class PlaybackService(service: MediaBrowserServiceCompat, private val callback: 
         fun onMetadataReceived(metadata: ShoutcastMetadata)
     }
 
-    private val context = service.applicationContext
+    private val context = mediaBrowser.applicationContext
     private var currentUri: Uri? = null
     private var audioSource: MediaSource? = null
     private var audioState: Int = PlaybackStateCompat.STATE_NONE
@@ -103,7 +103,7 @@ class PlaybackService(service: MediaBrowserServiceCompat, private val callback: 
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "confluxWakeLock")
     }
 
-    private val audioFocusManager: AudioFocusManager = AudioFocusManager(service, { onAudioFocusChanged() })
+    private val audioFocusManager: AudioFocusManager = AudioFocusManager(mediaBrowser, { onAudioFocusChanged() })
 
     override fun onMetadataReceived(data: ShoutcastMetadata) {
         Timber.i("Metadata Received")

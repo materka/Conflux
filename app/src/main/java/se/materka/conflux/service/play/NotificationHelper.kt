@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.graphics.Color
 import android.os.Build
 import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
@@ -34,35 +33,29 @@ import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
  * limitations under the License.
  */
 
-object PlayNotification {
+object NotificationHelper {
 
-    fun buildNotification(context: Context, mediaSession: MediaSessionCompat): Notification {
+    fun build(context: Context, mediaSession: MediaSessionCompat): Notification {
         val builder = getBuilder(context, mediaSession)
         val style = getMediaStyle(context, mediaSession)
         return builder.setStyle(style).build()
     }
 
     @SuppressLint("NewApi")
-    private fun getNotificationChannel(context: Context): String {
+    private fun getChannel(context: Context): String {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val mNotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             // The id of the channel.
-            val id = "my_channel_01"
+            val id = "conflux_channel_1"
             // The user-visible name of the channel.
             val name = "Conflux"
             // The user-visible description of the channel.
             val description = "Conflux Player"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val mChannel = NotificationChannel(id, name, importance)
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(id, name, importance)
             // Configure the notification channel.
-            mChannel.description = description
-            mChannel.enableLights(true)
-            // Sets the notification light color for notifications posted to this
-            // channel, if the device supports this feature.
-            mChannel.lightColor = Color.RED
-            mChannel.enableVibration(true)
-            mChannel.vibrationPattern = longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
-            mNotificationManager.createNotificationChannel(mChannel)
+            channel.description = description
+            notificationManager.createNotificationChannel(channel)
             id
         } else {
             NotificationChannel.DEFAULT_CHANNEL_ID
@@ -73,7 +66,7 @@ object PlayNotification {
         val controller: MediaControllerCompat = mediaSession.controller
         val mediaMetadata: MediaMetadataCompat? = controller.metadata
 
-        return NotificationCompat.Builder(context, getNotificationChannel(context)).apply {
+        return NotificationCompat.Builder(context, getChannel(context)).apply {
             color = ContextCompat.getColor(context, R.color.primary_dark)
 
             setContentTitle(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
