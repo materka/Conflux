@@ -1,4 +1,4 @@
-package se.materka.conflux.view.ui
+package se.materka.conflux.ui.view
 
 import android.arch.lifecycle.Observer
 import android.os.Bundle
@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.fragment_player.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.databinding.FragmentPlayerBinding
 import se.materka.conflux.ui.MetadataBinding
-import se.materka.conflux.viewmodel.PlayerViewModel
+import se.materka.conflux.ui.viewmodel.PlayerViewModel
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
 

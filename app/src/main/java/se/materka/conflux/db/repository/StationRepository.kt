@@ -1,10 +1,10 @@
-package se.materka.conflux.service.repository
+package se.materka.conflux.db.repository
 
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import org.jetbrains.anko.coroutines.experimental.bg
-import se.materka.conflux.service.datasource.StationDataSource
-import se.materka.conflux.service.model.Station
+import se.materka.conflux.db.datasource.StationDataSource
+import se.materka.conflux.db.model.Station
 
 /**
  * Created by Mattias on 1/18/2018.
@@ -14,14 +14,13 @@ interface StationRepository {
     fun create(station: Station): LiveData<Long>
     fun read(): LiveData<List<Station>>
     fun read(stationId: Long): LiveData<Station>
-    fun read(stationIds: LongArray): LiveData<List<Station>>
     fun update(station: Station): LiveData<Boolean>
     fun delete(station: Station): LiveData<Boolean>
     fun exists(station: Station): LiveData<Boolean>
 
 }
 
-class StationRepositoryImpl(private val dataSource: StationDataSource): StationRepository {
+class StationRepositoryImpl(private val dataSource: StationDataSource) : StationRepository {
 
     override fun create(station: Station): MutableLiveData<Long> {
         val id: MutableLiveData<Long> = MutableLiveData()
@@ -35,16 +34,8 @@ class StationRepositoryImpl(private val dataSource: StationDataSource): StationR
         return dataSource.select()
     }
 
-    override fun read(stationIds: LongArray): LiveData<List<Station>> {
-        return dataSource.select(stationIds)
-    }
-
     override fun read(stationId: Long): LiveData<Station> {
-        val station: MutableLiveData<Station> = MutableLiveData()
-        bg {
-            station.postValue(dataSource.select(stationId))
-        }
-        return station
+        return dataSource.select(stationId)
     }
 
     override fun update(station: Station): LiveData<Boolean> {

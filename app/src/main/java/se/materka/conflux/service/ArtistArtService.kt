@@ -58,7 +58,9 @@ class ArtistArtService(private val userName: String, private val password: Strin
     }
 
     fun getArt(artist: String?, callback: (Uri?) -> Unit) {
-        if (artist?.isEmpty() == true) { return }
+        if (artist?.isEmpty() == true) {
+            return
+        }
         this.callback = callback
         try {
             async(CommonPool) {

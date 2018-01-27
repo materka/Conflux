@@ -1,4 +1,4 @@
-package se.materka.conflux.view.adapter
+package se.materka.conflux.ui.adapter
 
 import android.databinding.DataBindingUtil
 import android.support.v7.widget.RecyclerView
@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentListItemBinding
-import se.materka.conflux.service.model.Station
+import se.materka.conflux.db.model.Station
 
 
 /**

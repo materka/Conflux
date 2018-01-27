@@ -1,4 +1,4 @@
-package se.materka.conflux.service.model
+package se.materka.conflux.db.model
 
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.PrimaryKey

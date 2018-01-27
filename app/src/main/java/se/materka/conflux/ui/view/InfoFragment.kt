@@ -1,4 +1,4 @@
-package se.materka.conflux.view.ui
+package se.materka.conflux.ui.view
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
@@ -10,7 +10,7 @@ import com.franmontiel.fullscreendialog.FullScreenDialogContent
 import com.franmontiel.fullscreendialog.FullScreenDialogController
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentInfoBinding
-import se.materka.conflux.service.model.Station
+import se.materka.conflux.db.model.Station
 
 /**
  * Copyright 2017 Mattias Karlsson

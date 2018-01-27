@@ -1,4 +1,4 @@
-package se.materka.conflux.service.play
+package se.materka.conflux.service
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -22,7 +22,6 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
 import se.materka.conflux.AudioFocusManager
 import se.materka.conflux.R
-import se.materka.conflux.service.PlaylistService
 import se.materka.exoplayershoutcastdatasource.ShoutcastDataSourceFactory
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadataListener
@@ -155,27 +154,27 @@ class PlaybackService(mediaBrowser: MediaBrowserServiceCompat, private val callb
     }
 
     override fun onLoadingChanged(isLoading: Boolean) {
-        Timber.i("Loading: $isLoading")
+        Timber.d("Loading: $isLoading")
     }
 
     override fun onPositionDiscontinuity() {
-        Timber.i("onPositionDiscontinuity: discontinuity detected")
+        Timber.d("onPositionDiscontinuity: discontinuity detected")
     }
 
     override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
-        Timber.i("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
+        Timber.d("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
     }
 
     override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-        Timber.i("onTracksChanged")
+        Timber.d("onTracksChanged")
     }
 
     override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-        Timber.i("onPlaybackParameterChanged")
+        Timber.d("onPlaybackParameterChanged")
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
-        Timber.i("onRepeatModeChanged")
+        Timber.d("onRepeatModeChanged")
     }
 
     fun stop(releasePlayer: Boolean = false) {

@@ -1,8 +1,7 @@
 package se.materka.conflux.service
 
-import se.materka.conflux.service.model.Station
-import se.materka.conflux.service.datasource.StationDataSource
-import se.materka.conflux.service.repository.StationRepository
+import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.repository.StationRepository
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -20,7 +19,7 @@ import se.materka.conflux.service.repository.StationRepository
  * limitations under the License.
  */
 
-class CreateStation(val repository: StationDataSource) {
+class CreateStation(val repository: StationRepository) {
 
     fun call(): List<Long?> {
 
@@ -43,10 +42,10 @@ class CreateStation(val repository: StationDataSource) {
                 }
         )
         stations.forEach { station ->
-            repository.insert(station)
-            repository.insert(station)
-            repository.insert(station)
-            repository.insert(station)
+            repository.create(station)
+            repository.create(station)
+            repository.create(station)
+            repository.create(station)
         }
         return stations.map { it.id }
     }

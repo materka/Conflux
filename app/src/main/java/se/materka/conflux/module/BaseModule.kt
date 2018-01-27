@@ -1,9 +1,9 @@
 package se.materka.conflux.module
 
 import org.koin.dsl.module.applicationContext
-import se.materka.conflux.AppDatabase
-import se.materka.conflux.service.repository.StationRepository
-import se.materka.conflux.service.repository.StationRepositoryImpl
+import se.materka.conflux.db.AppDatabase
+import se.materka.conflux.db.repository.StationRepository
+import se.materka.conflux.db.repository.StationRepositoryImpl
 
 /**
  * Created by Mattias on 1/17/2018.

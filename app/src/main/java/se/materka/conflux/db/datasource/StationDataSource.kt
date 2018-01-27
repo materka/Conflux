@@ -1,8 +1,8 @@
-package se.materka.conflux.service.datasource
+package se.materka.conflux.db.datasource
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
-import se.materka.conflux.service.model.Station
+import se.materka.conflux.db.model.Station
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -29,11 +29,8 @@ interface StationDataSource {
     @Query("SELECT * FROM station ORDER BY name ASC")
     fun select(): LiveData<List<Station>>
 
-    @Query("SELECT * FROM station WHERE id IN (:arg0)")
-    fun select(stationIds: LongArray): LiveData<List<Station>>
-
     @Query("SELECT * FROM station WHERE id = :arg0")
-    fun select(id: Long?): Station
+    fun select(id: Long?): LiveData<Station>
 
     @Update
     fun update(station: Station): Int

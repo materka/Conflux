@@ -1,4 +1,4 @@
-package se.materka.conflux.ui
+package se.materka.conflux.ui.view
 
 import android.arch.lifecycle.Observer
 import android.content.ComponentName
@@ -20,11 +20,10 @@ import kotlinx.android.synthetic.main.fragment_player.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.service.model.Station
-import se.materka.conflux.service.play.MediaBrowserService
-import se.materka.conflux.view.ui.PlayFragment
-import se.materka.conflux.viewmodel.ListViewModel
-import se.materka.conflux.viewmodel.PlayerViewModel
+import se.materka.conflux.db.model.Station
+import se.materka.conflux.service.MediaBrowserService
+import se.materka.conflux.ui.viewmodel.ListViewModel
+import se.materka.conflux.ui.viewmodel.PlayerViewModel
 import timber.log.Timber
 import java.lang.IllegalArgumentException
 

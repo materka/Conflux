@@ -21,7 +21,6 @@ import se.materka.conflux.R;
 /**
  * TextInputLayout temporary workaround for helper text showing
  * Credit: https://github.com/elye/demo_materiallogin
- *
  */
 public class CustomTextInputLayout extends TextInputLayout {
 
@@ -43,7 +42,7 @@ public class CustomTextInputLayout extends TextInputLayout {
 
         final TypedArray a = getContext().obtainStyledAttributes(
                 _attrs,
-                R.styleable.CustomTextInputLayout,0,0);
+                R.styleable.CustomTextInputLayout, 0, 0);
         try {
             mHelperTextColor = a.getColorStateList(R.styleable.CustomTextInputLayout_helperTextColor);
             mHelperText = a.getText(R.styleable.CustomTextInputLayout_helperText);
@@ -83,7 +82,7 @@ public class CustomTextInputLayout extends TextInputLayout {
             if (_enabled) {
                 this.mHelperView = new TextView(this.getContext());
                 this.mHelperView.setTextAppearance(this.getContext(), this.mHelperTextAppearance);
-                if (mHelperTextColor != null){
+                if (mHelperTextColor != null) {
                     this.mHelperView.setTextColor(mHelperTextColor);
                 }
                 this.mHelperView.setText(mHelperText);

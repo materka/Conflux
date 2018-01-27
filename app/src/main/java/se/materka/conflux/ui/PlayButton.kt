@@ -2,7 +2,6 @@ package se.materka.conflux.ui
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.util.AttributeSet
 import android.widget.ImageButton
 import se.materka.conflux.R

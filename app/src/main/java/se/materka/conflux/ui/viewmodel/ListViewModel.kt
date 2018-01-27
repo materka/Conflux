@@ -1,11 +1,10 @@
-package se.materka.conflux.viewmodel
+package se.materka.conflux.ui.viewmodel
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
-import se.materka.conflux.service.model.Station
-import se.materka.conflux.service.repository.StationRepository
+import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.repository.StationRepository
 
 
 /**
@@ -26,11 +25,6 @@ import se.materka.conflux.service.repository.StationRepository
 
 class ListViewModel(application: Application, private val repository: StationRepository) : AndroidViewModel(application) {
 
-    private val selected = MutableLiveData<Station>()
-
-    fun select(station: Station?) {
-        selected.value = station
-    }
 
     fun getStations(): LiveData<List<Station>>? {
         return repository.read()
@@ -40,11 +34,11 @@ class ListViewModel(application: Application, private val repository: StationRep
         return repository.create(station)
     }
 
-    fun deleteStation(): LiveData<Boolean> {
-        return repository.delete(selected.value!!)
+    fun deleteStation(station: Station): LiveData<Boolean> {
+        return repository.delete(station)
     }
 
-    fun updateStation() {
-        selected.value?.let { repository.update(it) }
+    fun updateStation(station: Station) {
+        repository.update(station)
     }
 }

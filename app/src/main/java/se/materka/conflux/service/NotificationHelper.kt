@@ -1,4 +1,4 @@
-package se.materka.conflux.service.play
+package se.materka.conflux.service
 
 import android.annotation.SuppressLint
 import android.app.Notification

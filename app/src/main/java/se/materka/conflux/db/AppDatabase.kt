@@ -1,11 +1,12 @@
-package se.materka.conflux
+package se.materka.conflux.db
 
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
 import android.content.Context
-import se.materka.conflux.service.model.Station
-import se.materka.conflux.service.datasource.StationDataSource
+import se.materka.conflux.R
+import se.materka.conflux.db.datasource.StationDataSource
+import se.materka.conflux.db.model.Station
 
 /**
  * Copyright 2017 Mattias Karlsson

@@ -27,6 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="16dp"
+            android:textColor="@color/secondary_text"
             android:text="Info" />
     </LinearLayout>
 
@@ -50,6 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="16dp"
+            android:textColor="@color/secondary_text"
             android:text="Edit" />
     </LinearLayout>
 
@@ -73,6 +75,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="16dp"
+            android:textColor="@color/secondary_text"
             android:text="Delete" />
     </LinearLayout>
 </LinearLayout>

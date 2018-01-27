@@ -1,4 +1,4 @@
-package se.materka.conflux.view.ui
+package se.materka.conflux.ui.view
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
@@ -8,10 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import com.franmontiel.fullscreendialog.FullScreenDialogContent
 import com.franmontiel.fullscreendialog.FullScreenDialogController
-import kotlinx.android.synthetic.main.fragment_play.*
 import se.materka.conflux.R
-import se.materka.conflux.databinding.FragmentPlayBinding
-import se.materka.conflux.service.model.Station
+import se.materka.conflux.databinding.FragmentEditBinding
+import se.materka.conflux.db.model.Station
 import se.materka.conflux.ui.hideKeyboard
 
 /**
@@ -30,48 +29,44 @@ import se.materka.conflux.ui.hideKeyboard
  * limitations under the License.
  */
 
-class PlayFragment : Fragment(), FullScreenDialogContent {
-    private var dialogController: FullScreenDialogController? = null
-    private val station: Station = Station()
+class EditFragment : Fragment(), FullScreenDialogContent {
+
+    private var station: Station? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (arguments != null) {
+            station = arguments!!.getParcelable(EditFragment.ARG_STATION)
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val binding: FragmentPlayBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_play, container, false)
+        val binding: FragmentEditBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_edit, container, false)
         binding.station = station
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        toggle_save_container.setOnCheckedChangeListener { _, _ ->
-            save_container.visibility = if (save_container.visibility != View.GONE) View.GONE else View.VISIBLE
-        }
-        save_and_play.setOnClickListener { onConfirm() }
-    }
-
     override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
-        onConfirm()
-        return true
+        view?.hideKeyboard()
+        return false
     }
 
-    override fun onDialogCreated(dialogController: FullScreenDialogController?) {
-        this.dialogController = dialogController
-    }
+    override fun onDialogCreated(dialogController: FullScreenDialogController?) {}
 
     override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
         view?.hideKeyboard()
         return false
     }
 
-    private fun onConfirm() {
-        view?.hideKeyboard()
-        dialogController?.confirm(Bundle().apply {
-            putParcelable(EXTRA_STATION, station)
-            putBoolean(EXTRA_SAVE_STATION, toggle_save_container.isChecked)
-        })
-    }
-
     companion object {
-        val EXTRA_STATION: String = "se.materka.conflux.STATION"
-        val EXTRA_SAVE_STATION: String = "se.materka.conflux.SAVE_STATION"
+        val ARG_STATION = "station"
+
+        fun newInstance(station: String): EditFragment {
+            val fragment = EditFragment()
+            val args = Bundle()
+            args.putString(ARG_STATION, station)
+            fragment.arguments = args
+            return fragment
+        }
     }
 }
