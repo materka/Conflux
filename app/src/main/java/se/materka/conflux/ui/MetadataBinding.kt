@@ -24,6 +24,7 @@ class MetadataBinding : BaseObservable() {
     private var artist: String? = null
     private var title: String? = null
     private var show: String? = null
+    private var album: String? = null
 
     @Bindable
     fun getArtist(): String? {
@@ -40,6 +41,12 @@ class MetadataBinding : BaseObservable() {
         return this.title
     }
 
+    @Bindable
+    fun getAlbum(): String? {
+        return this.album
+    }
+
+
     fun setArtist(artist: String?) {
         this.artist = artist
         notifyPropertyChanged(BR.artist)
@@ -55,9 +62,15 @@ class MetadataBinding : BaseObservable() {
         notifyPropertyChanged(BR.title)
     }
 
+    fun setAlbum(album: String?) {
+        this.album = album
+        notifyPropertyChanged(BR.album)
+    }
+
     fun clear() {
         setArtist(null)
         setTitle(null)
         setShow(null)
+        setAlbum(null)
     }
 }

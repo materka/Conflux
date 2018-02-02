@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
+import android.support.design.widget.AppBarLayout
 import android.support.design.widget.BottomSheetBehavior
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -13,17 +14,15 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
-import android.view.View
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.fragment_player.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.db.model.Station
 import se.materka.conflux.service.MediaBrowserService
 import se.materka.conflux.ui.viewmodel.ListViewModel
-import se.materka.conflux.ui.viewmodel.PlayerViewModel
+import se.materka.conflux.ui.viewmodel.MetadataModel
 import timber.log.Timber
 import java.lang.IllegalArgumentException
 
@@ -44,10 +43,10 @@ import java.lang.IllegalArgumentException
  * limitations under the License.
  */
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
 
-    private val playerViewModel: PlayerViewModel by lazy {
-        getViewModel<PlayerViewModel>()
+    private val metadataModel: MetadataModel by lazy {
+        getViewModel<MetadataModel>()
     }
 
     private val listViewModel: ListViewModel by lazy {
@@ -68,11 +67,11 @@ class MainActivity : AppCompatActivity() {
     val mediaControllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            playerViewModel.onMetadataChanged(metadata)
+            metadataModel.onMetadataChanged(metadata)
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            playerViewModel.onPlaybackStateChanged(state)
+            metadataModel.onPlaybackStateChanged(state)
         }
     }
 
@@ -101,15 +100,12 @@ class MainActivity : AppCompatActivity() {
 
         btn_toggle_play.showPlay()
 
-        playerViewModel.isPlaying.observe(this, Observer { playing ->
+        metadataModel.isPlaying.observe(this, Observer { playing ->
             if (playing == true) {
                 setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
                 btn_toggle_play.apply {
                     showPause()
                     setOnClickListener { mediaController.transportControls?.stop() }
-                    image_cover.visibility = View.GONE
-                    image_cover.setImageBitmap(null)
-
                 }
             } else {
                 setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
@@ -120,7 +116,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        playerViewModel.currentStation.observe(this, Observer
+        metadataModel.currentStation.observe(this, Observer
         {
             val uri: Uri = Uri.parse(it?.url)
             try {
@@ -145,6 +141,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onViewStateChanged(state: MetadataFragment.Companion.ViewState) {
+        when (state) {
+            MetadataFragment.Companion.ViewState.COLLAPSED -> setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
+            MetadataFragment.Companion.ViewState.EXPANDED -> setBottomSheetState(BottomSheetBehavior.STATE_EXPANDED)
+        }
+    }
+
     private fun showPlayDialog() {
         FullScreenDialogFragment.Builder(this@MainActivity)
                 .setTitle("Play")
@@ -154,7 +157,7 @@ class MainActivity : AppCompatActivity() {
                     if (bundle?.getBoolean(PlayFragment.EXTRA_SAVE_STATION, false) == true && station != null) {
                         listViewModel.saveStation(station)
                     }
-                    playerViewModel.play(station)
+                    metadataModel.play(station)
                 }
                 .setConfirmButton("PLAY")
                 .build()
@@ -162,7 +165,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setBottomSheetState(state: Int) {
-        BottomSheetBehavior.from(player_fragment.view).state = state
+        BottomSheetBehavior.from(metadata.view).let {
+            if (it.state != state) {
+                it.state = state
+                (toolbar.parent as AppBarLayout).setExpanded(state != BottomSheetBehavior.STATE_EXPANDED, true)
+
+            }
+        }
     }
 }
 

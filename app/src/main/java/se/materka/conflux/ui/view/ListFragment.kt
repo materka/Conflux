@@ -18,7 +18,7 @@ import se.materka.conflux.db.model.Station
 import se.materka.conflux.ui.DividerItemDecoration
 import se.materka.conflux.ui.adapter.ListAdapter
 import se.materka.conflux.ui.viewmodel.ListViewModel
-import se.materka.conflux.ui.viewmodel.PlayerViewModel
+import se.materka.conflux.ui.viewmodel.MetadataModel
 
 
 /**
@@ -42,8 +42,8 @@ class ListFragment : Fragment() {
     private lateinit var listAdapter: ListAdapter
     private var selectedStation: Station? = null
 
-    private val playerViewModel: PlayerViewModel? by lazy {
-        activity?.getViewModel<PlayerViewModel>()
+    private val metadataModel: MetadataModel? by lazy {
+        activity?.getViewModel<MetadataModel>()
     }
 
     private val listViewModel: ListViewModel? by lazy {
@@ -75,7 +75,7 @@ class ListFragment : Fragment() {
 
     private fun itemClicked(station: Station) {
         selectedStation = station
-        playerViewModel?.play(station)
+        metadataModel?.play(station)
     }
 
     private fun itemLongClicked(station: Station) {

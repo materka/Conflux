@@ -27,7 +27,7 @@ import timber.log.Timber
  * limitations under the License.
  */
 
-class PlayerViewModel(application: Application, private val stationRepository: StationRepository) : AndroidViewModel(application) {
+class MetadataModel(application: Application, private val stationRepository: StationRepository) : AndroidViewModel(application) {
 
     val currentStation = MutableLiveData<Station>()
     val metadata = MutableLiveData<MediaMetadataCompat>()
@@ -51,12 +51,8 @@ class PlayerViewModel(application: Application, private val stationRepository: S
 
     fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
         isPlaying.value = when (state?.state) {
-            PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.STATE_BUFFERING -> {
-                true
-            }
-            else -> {
-                false
-            }
+            PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.STATE_BUFFERING -> true
+            else -> false
         }
     }
 

@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
+        <import type="android.view.View"/>
+        <variable
+            name="handler"
+            type="se.materka.conflux.ui.view.MetadataFragment" />
         <variable
             name="metadata"
             type="se.materka.conflux.ui.MetadataBinding" />
     </data>
 
     <RelativeLayout
-        android:id="@+id/test"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/primary">
@@ -23,8 +27,11 @@
             android:id="@+id/image_cover"
             android:layout_width="120dp"
             android:layout_height="120dp"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true"
             android:layout_alignParentStart="true"
-            android:transitionName="image_cover" />
+            android:transitionName="image_cover"
+            app:imageUrl="@{ metadata.album }"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -45,7 +52,7 @@
                 android:textAllCaps="true"
                 android:textColor="@android:color/white"
                 android:transitionName="text_title"
-                android:visibility="gone" />
+                android:visibility="@{ metadata.title.length() > 0 ? View.VISIBLE : View.GONE }" />
 
             <TextView
                 android:id="@+id/text_artist"
@@ -57,7 +64,7 @@
                 android:textAllCaps="true"
                 android:textColor="@android:color/white"
                 android:transitionName="text_artist"
-                android:visibility="gone" />
+                android:visibility="@{ metadata.artist.length() > 0 ? View.VISIBLE : View.GONE }" />
 
             <TextView
                 android:id="@+id/text_show"
@@ -69,7 +76,31 @@
                 android:textAllCaps="true"
                 android:textColor="@android:color/white"
                 android:transitionName="text_show"
-                android:visibility="gone" />
+                android:visibility="@{ metadata.show.length() > 0 ? View.VISIBLE : View.GONE }" />
+
+            <TextView
+                android:id="@+id/text_station"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@{metadata.station}"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:transitionName="text_station"
+                android:visibility="@{ metadata.station.length() > 0 ? View.VISIBLE : View.GONE }" />
+
+            <TextView
+                android:id="@+id/text_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@{metadata.url}"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:transitionName="text_url"
+                android:visibility="@{ metadata.url.length() > 0 ? View.VISIBLE : View.GONE }" />
         </LinearLayout>
     </RelativeLayout>
 </layout>

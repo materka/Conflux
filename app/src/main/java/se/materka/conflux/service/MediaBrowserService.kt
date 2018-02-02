@@ -132,6 +132,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         } catch (e: IllegalStateException) {
             // TODO: Investigate why for some unknown reason we occasionally select an exception for
             // "beginBroadcast() called while already in a broadast"
+            // RemoteCallbackList.beginBroadcast -> Måste kallas på samma tråd hela tiden. Kan vara så att den kallas på annan tråd
             Timber.e(e)
         }
     }
