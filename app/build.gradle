@@ -79,4 +79,7 @@ dependencies {
 
     implementation 'com.mikepenz:iconics-core:3.0.2@aar'
     implementation 'com.mikepenz:community-material-typeface:2.0.46.1@aar'
+
+    implementation 'com.google.code.gson:gson:2.8.2'
+    implementation 'com.github.salomonbrys.kotson:kotson:2.5.0'
 }

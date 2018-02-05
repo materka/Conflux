@@ -1,0 +1,18 @@
+[
+  {
+    "name": "BANDIT",
+    "url": "http://stream-ice.mtgradio.com:8080/stat_bandit"
+  },
+  {
+    "name": "P3",
+    "url": "http://http-live.sr.se/p3-mp3-192"
+  },
+  {
+    "name": "EAST FM",
+    "url": "http://www.listenlive.eu/eastfm.m3u"
+  },
+  {
+    "name": "P2",
+    "url": "http://sverigesradio.se/topsy/direkt/2562-hi-mp3.pls"
+  }
+]
