@@ -2,6 +2,7 @@
 
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -29,6 +30,7 @@
         <include
             layout="@layout/toolbar"
             app:layout_insetEdge="top" />
+
         <fragment
             android:id="@+id/metadata"
             android:name="se.materka.conflux.ui.view.MetadataFragment"
@@ -55,20 +57,22 @@
             android:layout_height="60dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:src="@drawable/md_play" />
+            app:ico_icon="cmd-playlist-play"
+            app:ico_size="24dp"
+            app:ico_color="@android:color/white"
+            tools:ignore="MissingPrefix" />
 
         <View
             android:layout_width="2dp"
             android:layout_height="fill_parent"
             android:background="@color/accent_shadow" />
 
-        <se.materka.conflux.ui.PlayButton
+        <se.materka.conflux.ui.AnimatedPlayButton
             android:id="@+id/btn_toggle_play"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:src="@drawable/md_play" />
+            android:background="@android:color/transparent" />
 
         <View
             android:layout_width="2dp"
@@ -82,7 +86,10 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
-            android:src="@drawable/md_play" />
+            app:ico_icon="cmd-heart-outline"
+            app:ico_size="24dp"
+            app:ico_color="@android:color/white"
+            tools:ignore="MissingPrefix" />
 
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
