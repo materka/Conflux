@@ -9,6 +9,6 @@ import se.materka.conflux.ui.viewmodel.MetadataViewModel
  */
 
 
-val metadataModule = applicationContext {
+val MetadataModule = applicationContext {
     viewModel { MetadataViewModel(get(), get()) }
 }
