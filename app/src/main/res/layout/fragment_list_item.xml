@@ -2,122 +2,74 @@
 <layout>
 
     <data>
+
         <variable
-            name="station" type="se.materka.conflux.db.model.Station" />
+            name="station"
+            type="se.materka.conflux.db.model.Station" />
     </data>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
         android:clickable="true"
         android:focusable="true"
+        android:gravity="center_vertical"
         android:orientation="vertical"
-        android:gravity="center_vertical">
+        android:paddingBottom="8dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="8dp">
+
+        <View
+            android:id="@+id/selected"
+            android:layout_width="4dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_marginEnd="4dp"
+            android:background="@color/accent"
+            android:visibility="gone"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/selected"
             android:orientation="horizontal">
 
             <TextView
-                android:text="@{station.name}"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:singleLine="true"
+                android:text="@{station.name}"
                 android:textAllCaps="true"
                 android:textSize="16sp" />
 
             <TextView
-                android:text="@{station.bitrate.toString()}"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:text="@{station.bitrate.toString()}"
                 android:textSize="12sp" />
 
             <TextView
-                android:text="@{station.format}"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_marginStart="2dp"
-                android:textSize="12sp"
-                android:gravity="end" />
+                android:gravity="end"
+                android:text="@{station.format}"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <TextView
-            android:text="@{station.url}"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_toEndOf="@id/selected"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@{station.url}"
+            android:textAllCaps="true"
             android:textColor="@color/secondary_text"
-            android:ellipsize="end"
-            android:singleLine="true"
-            android:textAllCaps="true"
             android:textSize="12sp" />
-    </LinearLayout>
+    </RelativeLayout>
 </layout>
-<!--<?xml version="1.0" encoding="utf-8"?>
-<layout>
-
-    <data>
-        <variable
-            name="station" tyse.materka.conflux.db.modelodel.Station" />
-    </data>
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="60dp"
-    android:background="?attr/selectableItemBackground"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:clickable="true"
-    android:focusable="true"
-    android:orientation="vertical"
-    android:gravity="center_vertical">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:text="@{station.name}"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:singleLine="true"
-            android:textAllCaps="true"
-            android:textStyle="bold"
-            android:textSize="16sp" />
-
-        <TextView
-            android:text="@{station.bitrate.toString()}"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:textSize="12sp" />
-
-        <TextView
-            android:text="@{station.format}"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
-            android:textSize="12sp"
-            android:gravity="end" />
-    </LinearLayout>
-
-    <TextView
-        android:text="@{station.url}"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:singleLine="true"
-        android:textAllCaps="true"
-        android:textSize="14sp" />
-</LinearLayout>
-</layout>-->

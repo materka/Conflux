@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView.ViewHolder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import kotlinx.android.synthetic.main.fragment_list_item.view.*
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentListItemBinding
 import se.materka.conflux.db.model.Station
@@ -33,32 +34,14 @@ class ListAdapter(val onItemClicked: (station: Station) -> Unit?,
         private val FOOTER_VIEW = 1
     }
 
-    // Define a view holder for Footer view
-    inner class FooterViewHolder(itemView: View) : ViewHolder(itemView)
-
-    inner class StationViewHolder(private val listItemBinding: FragmentListItemBinding) : ViewHolder(listItemBinding.root) {
-
-        init {
-            listItemBinding.root.setOnClickListener {
-                onItemClicked(stations[adapterPosition])
-            }
-            listItemBinding.root.setOnLongClickListener {
-                onItemLongClicked(stations[adapterPosition])
-                true
-            }
-        }
-
-        fun bind(station: Station) {
-            listItemBinding.station = station
-            listItemBinding.executePendingBindings()
-        }
-    }
+    private var selected: Int = -1
+    private var parent: RecyclerView? = null
 
     private var stations: List<Station> = mutableListOf()
 
-    fun updateDataSet(items: List<Station>) {
-        stations = items
-        notifyDataSetChanged()
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView?) {
+        super.onAttachedToRecyclerView(recyclerView)
+        parent = recyclerView
     }
 
     override fun onBindViewHolder(holder: ViewHolder?, position: Int) {
@@ -66,6 +49,9 @@ class ListAdapter(val onItemClicked: (station: Station) -> Unit?,
             if (holder is StationViewHolder) {
                 stations[position].let { station ->
                     holder.bind(station)
+                    if (position == selected) {
+                        holder.itemView.selected?.visibility = View.VISIBLE
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -83,14 +69,47 @@ class ListAdapter(val onItemClicked: (station: Station) -> Unit?,
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder? {
         val inflater = LayoutInflater.from(parent.context)
-        val vh: ViewHolder
-        if (viewType == FOOTER_VIEW) {
+        return if (viewType == FOOTER_VIEW) {
             val view = inflater.inflate(R.layout.fragment_list_footer, parent, false)
-            vh = FooterViewHolder(view)
+            FooterViewHolder(view)
         } else {
             val binding: FragmentListItemBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.context), viewType, parent, false)
-            vh = StationViewHolder(binding)
+            StationViewHolder(binding)
         }
-        return vh
     }
+
+    fun updateDataSet(items: List<Station>) {
+        stations = items
+        notifyDataSetChanged()
+    }
+
+    private fun select(position: Int) {
+        for (i in 0 until itemCount) {
+            parent?.findViewHolderForAdapterPosition(i)?.itemView?.selected?.visibility = View.GONE
+        }
+        selected = position
+        notifyDataSetChanged()
+    }
+
+    inner class FooterViewHolder(itemView: View) : ViewHolder(itemView)
+
+    inner class StationViewHolder(private val listItemBinding: FragmentListItemBinding) : ViewHolder(listItemBinding.root) {
+
+        init {
+            listItemBinding.root.setOnClickListener {
+                onItemClicked(stations[adapterPosition])
+                select(adapterPosition)
+            }
+            listItemBinding.root.setOnLongClickListener {
+                onItemLongClicked(stations[adapterPosition])
+                true
+            }
+        }
+
+        fun bind(station: Station) {
+            listItemBinding.station = station
+            listItemBinding.executePendingBindings()
+        }
+    }
+
 }
