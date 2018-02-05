@@ -3,6 +3,7 @@ package se.materka.conflux.ui
 import android.databinding.BaseObservable
 import android.databinding.Bindable
 import se.materka.conflux.BR
+import se.materka.conflux.db.model.Station
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -21,56 +22,48 @@ import se.materka.conflux.BR
  */
 
 class MetadataBinding : BaseObservable() {
-    private var artist: String? = null
-    private var title: String? = null
-    private var show: String? = null
-    private var album: String? = null
+    var artist: String? = null
+        @Bindable
+        get() = field
+        set(value) {
+            field = value
+            notifyPropertyChanged(BR.artist)
+        }
+    var title: String? = null
+        @Bindable
+        get() = field
+        set(value) {
+            field = value
+            notifyPropertyChanged(BR.title)
+        }
+    var show: String? = null
+        @Bindable
+        get() = field
+        set(value) {
+            field = value
+            notifyPropertyChanged(BR.show)
+        }
 
-    @Bindable
-    fun getArtist(): String? {
-        return this.artist
-    }
+    var album: String? = null
+        @Bindable
+        get() = field
+        set(value) {
+            field = value
+            notifyPropertyChanged(BR.album)
+        }
 
-    @Bindable
-    fun getShow(): String? {
-        return this.show
-    }
-
-    @Bindable
-    fun getTitle(): String? {
-        return this.title
-    }
-
-    @Bindable
-    fun getAlbum(): String? {
-        return this.album
-    }
-
-
-    fun setArtist(artist: String?) {
-        this.artist = artist
-        notifyPropertyChanged(BR.artist)
-    }
-
-    fun setShow(show: String?) {
-        this.show = show
-        notifyPropertyChanged(BR.show)
-    }
-
-    fun setTitle(title: String?) {
-        this.title = title
-        notifyPropertyChanged(BR.title)
-    }
-
-    fun setAlbum(album: String?) {
-        this.album = album
-        notifyPropertyChanged(BR.album)
-    }
+    var station: Station = Station()
+        @Bindable
+        get() = field
+        set(value) {
+            field = value
+            notifyPropertyChanged(BR.station)
+        }
 
     fun clear() {
-        setArtist(null)
-        setTitle(null)
-        setShow(null)
-        setAlbum(null)
+        artist = null
+        show = null
+        album = null
+        station = Station().apply { name = ""; url = "" }
     }
 }

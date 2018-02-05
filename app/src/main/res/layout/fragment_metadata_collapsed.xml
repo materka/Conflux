@@ -43,6 +43,31 @@
             android:paddingStart="16dp">
 
             <TextView
+                android:id="@+id/text_station"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@{metadata.station.name}"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:transitionName="text_station"
+                android:visibility="@{ metadata.station.name.length() > 0 ? View.VISIBLE : View.GONE }" />
+
+            <TextView
+                android:id="@+id/text_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@{metadata.station.url}"
+                android:textSize="12sp"
+                android:textAllCaps="true"
+                android:textColor="@color/secondary_text"
+                android:transitionName="text_url"
+                android:visibility="@{ metadata.station.url.length() > 0 ? View.VISIBLE : View.GONE }" />
+
+            <TextView
                 android:id="@+id/text_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -78,29 +103,6 @@
                 android:transitionName="text_show"
                 android:visibility="@{ metadata.show.length() > 0 ? View.VISIBLE : View.GONE }" />
 
-            <TextView
-                android:id="@+id/text_station"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:text="@{metadata.station}"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:transitionName="text_station"
-                android:visibility="@{ metadata.station.length() > 0 ? View.VISIBLE : View.GONE }" />
-
-            <TextView
-                android:id="@+id/text_url"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:text="@{metadata.url}"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:transitionName="text_url"
-                android:visibility="@{ metadata.url.length() > 0 ? View.VISIBLE : View.GONE }" />
         </LinearLayout>
     </RelativeLayout>
 </layout>

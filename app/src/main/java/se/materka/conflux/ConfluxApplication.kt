@@ -10,7 +10,7 @@ import org.koin.android.ext.android.startKoin
 import se.materka.conflux.db.repository.StationRepository
 import se.materka.conflux.module.BaseModule
 import se.materka.conflux.module.ListModule
-import se.materka.conflux.module.PlayerModule
+import se.materka.conflux.module.metadataModule
 import se.materka.conflux.service.CreateStation
 import timber.log.Timber
 
@@ -21,7 +21,7 @@ class ConfluxApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        startKoin(this, listOf(BaseModule, ListModule, PlayerModule))
+        startKoin(this, listOf(BaseModule, ListModule, metadataModule))
 
         if (BuildConfig.DEBUG) {
             Stetho.initializeWithDefaults(this)

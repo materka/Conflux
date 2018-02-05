@@ -18,7 +18,6 @@ import se.materka.conflux.db.model.Station
 import se.materka.conflux.ui.DividerItemDecoration
 import se.materka.conflux.ui.adapter.ListAdapter
 import se.materka.conflux.ui.viewmodel.ListViewModel
-import se.materka.conflux.ui.viewmodel.MetadataModel
 
 
 /**
@@ -40,11 +39,6 @@ import se.materka.conflux.ui.viewmodel.MetadataModel
 class ListFragment : Fragment() {
 
     private lateinit var listAdapter: ListAdapter
-    private var selectedStation: Station? = null
-
-    private val metadataModel: MetadataModel? by lazy {
-        activity?.getViewModel<MetadataModel>()
-    }
 
     private val listViewModel: ListViewModel? by lazy {
         activity?.getViewModel<ListViewModel>()
@@ -74,20 +68,19 @@ class ListFragment : Fragment() {
     }
 
     private fun itemClicked(station: Station) {
-        selectedStation = station
-        metadataModel?.play(station)
+        listViewModel?.select(station)
     }
 
     private fun itemLongClicked(station: Station) {
-        selectedStation = station
+        listViewModel?.select(station)
         val actionView = activity!!.layoutInflater.inflate(R.layout.menu_action, null)
         val actionDialog = BottomSheetDialog(activity!!)
 
         actionView.info.setOnClickListener {
-            selectedStation?.let {
+            listViewModel?.selectedStation?.let {
                 FullScreenDialogFragment.Builder(activity!!)
                         .setTitle("Information")
-                        .setContent(InfoFragment::class.java, Bundle().apply { putParcelable(InfoFragment.ARG_STATION, it) })
+                        .setContent(InfoFragment::class.java, Bundle().apply { putParcelable(InfoFragment.ARG_STATION, it.value) })
                         .build()
                         .show(fragmentManager, "InfoFragment")
             }
@@ -95,13 +88,13 @@ class ListFragment : Fragment() {
         }
 
         actionView.edit.setOnClickListener {
-            selectedStation?.let {
+            listViewModel?.selectedStation?.let { station ->
                 FullScreenDialogFragment.Builder(activity!!)
                         .setTitle("Edit")
-                        .setContent(EditFragment::class.java, Bundle().apply { putParcelable(EditFragment.ARG_STATION, it) })
+                        .setContent(EditFragment::class.java, Bundle().apply { putParcelable(EditFragment.ARG_STATION, station.value) })
                         .setConfirmButton("SAVE")
                         .setOnConfirmListener {
-                            listViewModel?.updateStation(selectedStation!!)
+                            listViewModel?.updateStation(station.value!!)
                         }
                         .build()
                         .show(fragmentManager, "EditFragment")
@@ -110,12 +103,12 @@ class ListFragment : Fragment() {
         }
 
         actionView.delete.setOnClickListener {
-            selectedStation?.let {
+            listViewModel?.selectedStation?.let { station ->
                 AlertDialog.Builder(activity!!, R.style.AppTheme_WarningDialog)
                         .setTitle("Remove")
                         .setMessage("Are you sure you want to remove this station?")
                         .setPositiveButton("REMOVE") { _, _ ->
-                            listViewModel?.deleteStation(selectedStation!!)
+                            listViewModel?.deleteStation(station.value!!)
                         }
                         .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
                         .show()

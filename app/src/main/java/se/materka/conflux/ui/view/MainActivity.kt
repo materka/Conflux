@@ -2,6 +2,7 @@ package se.materka.conflux.ui.view
 
 import android.arch.lifecycle.Observer
 import android.content.ComponentName
+import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
@@ -15,6 +16,7 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment
+import com.mikepenz.iconics.context.IconicsContextWrapper
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.koin.android.architecture.ext.getViewModel
@@ -22,7 +24,7 @@ import se.materka.conflux.R
 import se.materka.conflux.db.model.Station
 import se.materka.conflux.service.MediaBrowserService
 import se.materka.conflux.ui.viewmodel.ListViewModel
-import se.materka.conflux.ui.viewmodel.MetadataModel
+import se.materka.conflux.ui.viewmodel.MetadataViewModel
 import timber.log.Timber
 import java.lang.IllegalArgumentException
 
@@ -45,8 +47,8 @@ import java.lang.IllegalArgumentException
 
 class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
 
-    private val metadataModel: MetadataModel by lazy {
-        getViewModel<MetadataModel>()
+    private val metadataViewModel: MetadataViewModel by lazy {
+        getViewModel<MetadataViewModel>()
     }
 
     private val listViewModel: ListViewModel by lazy {
@@ -67,11 +69,11 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
     val mediaControllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            metadataModel.onMetadataChanged(metadata)
+            metadataViewModel.onMetadataChanged(metadata, listViewModel.selectedStation.value)
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-            metadataModel.onPlaybackStateChanged(state)
+            metadataViewModel.onPlaybackStateChanged(state)
         }
     }
 
@@ -100,7 +102,7 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
 
         btn_toggle_play.showPlay()
 
-        metadataModel.isPlaying.observe(this, Observer { playing ->
+        metadataViewModel.isPlaying.observe(this, Observer { playing ->
             if (playing == true) {
                 setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
                 btn_toggle_play.apply {
@@ -116,7 +118,7 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
             }
         })
 
-        metadataModel.currentStation.observe(this, Observer
+        listViewModel.selectedStation.observe(this, Observer
         {
             val uri: Uri = Uri.parse(it?.url)
             try {
@@ -141,6 +143,10 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
         }
     }
 
+    override fun attachBaseContext(newBase: Context?) {
+        super.attachBaseContext(IconicsContextWrapper.wrap(newBase))
+    }
+
     override fun onViewStateChanged(state: MetadataFragment.Companion.ViewState) {
         when (state) {
             MetadataFragment.Companion.ViewState.COLLAPSED -> setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
@@ -157,7 +163,6 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
                     if (bundle?.getBoolean(PlayFragment.EXTRA_SAVE_STATION, false) == true && station != null) {
                         listViewModel.saveStation(station)
                     }
-                    metadataModel.play(station)
                 }
                 .setConfirmButton("PLAY")
                 .build()

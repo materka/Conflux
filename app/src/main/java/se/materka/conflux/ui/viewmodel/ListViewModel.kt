@@ -3,6 +3,7 @@ package se.materka.conflux.ui.viewmodel
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
 import se.materka.conflux.db.model.Station
 import se.materka.conflux.db.repository.StationRepository
 
@@ -25,6 +26,7 @@ import se.materka.conflux.db.repository.StationRepository
 
 class ListViewModel(application: Application, private val repository: StationRepository) : AndroidViewModel(application) {
 
+    val selectedStation: MutableLiveData<Station> = MutableLiveData()
 
     fun getStations(): LiveData<List<Station>>? {
         return repository.read()
@@ -40,5 +42,9 @@ class ListViewModel(application: Application, private val repository: StationRep
 
     fun updateStation(station: Station) {
         repository.update(station)
+    }
+
+    fun select(station: Station) {
+        selectedStation.postValue(station)
     }
 }

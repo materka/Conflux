@@ -27,26 +27,27 @@ import timber.log.Timber
  * limitations under the License.
  */
 
-class MetadataModel(application: Application, private val stationRepository: StationRepository) : AndroidViewModel(application) {
+class MetadataViewModel(application: Application, private val stationRepository: StationRepository) : AndroidViewModel(application) {
 
-    val currentStation = MutableLiveData<Station>()
     val metadata = MutableLiveData<MediaMetadataCompat>()
     val isPlaying = MutableLiveData<Boolean>()
     private val artistArt = MutableLiveData<Bitmap>()
 
-    fun onMetadataChanged(data: MediaMetadataCompat?) {
+    fun onMetadataChanged(data: MediaMetadataCompat?, currentStation: Station?) {
         Timber.i("New metadata")
         metadata.value = data
         artistArt.value = data?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
-        currentStation.value?.let { station ->
-            val bitrate = data?.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE)
-            val format = data?.getString(ShoutcastMetadata.METADATA_KEY_FORMAT)
+        val bitrate = data?.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE)
+        val format = data?.getString(ShoutcastMetadata.METADATA_KEY_FORMAT)
+
+        currentStation?.let { station ->
             if (station.isPersisted && (station.bitrate != bitrate || station.format != format)) {
                 station.bitrate = bitrate
                 station.format = format
                 stationRepository.update(station)
             }
         }
+
     }
 
     fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
@@ -54,9 +55,5 @@ class MetadataModel(application: Application, private val stationRepository: Sta
             PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.STATE_BUFFERING -> true
             else -> false
         }
-    }
-
-    fun play(station: Station?) {
-        currentStation.postValue(station)
     }
 }

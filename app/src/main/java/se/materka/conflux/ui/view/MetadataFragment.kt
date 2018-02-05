@@ -14,8 +14,10 @@ import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentMetadataCollapsedBinding
 import se.materka.conflux.databinding.FragmentMetadataExpandedBinding
+import se.materka.conflux.db.model.Station
 import se.materka.conflux.ui.MetadataBinding
-import se.materka.conflux.ui.viewmodel.MetadataModel
+import se.materka.conflux.ui.viewmodel.ListViewModel
+import se.materka.conflux.ui.viewmodel.MetadataViewModel
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
 
@@ -48,8 +50,12 @@ class MetadataFragment : Fragment() {
         fun onViewStateChanged(state: ViewState)
     }
 
-    val viewModel: MetadataModel? by lazy {
-        activity?.getViewModel<MetadataModel>()
+    private val metadataViewModel: MetadataViewModel? by lazy {
+        activity?.getViewModel<MetadataViewModel>()
+    }
+
+    private val listViewModel: ListViewModel? by lazy {
+        activity?.getViewModel<ListViewModel>()
     }
 
     private val metadata = MetadataBinding()
@@ -57,11 +63,12 @@ class MetadataFragment : Fragment() {
     private var listener: Listener? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        viewModel?.metadata?.observe(this, Observer {
-            metadata.setArtist(it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST))
-            metadata.setTitle(it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE))
-            metadata.setShow(it?.getString(ShoutcastMetadata.METADATA_KEY_SHOW))
-            metadata.setAlbum(it?.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI))
+        metadataViewModel?.metadata?.observe(this, Observer {
+            metadata.station = listViewModel?.selectedStation?.value ?: Station().apply { name = ""; url = "" }
+            metadata.artist = it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
+            metadata.title = it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
+            metadata.show = it?.getString(ShoutcastMetadata.METADATA_KEY_SHOW)
+            metadata.album = it?.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)
         })
         return inflater.inflate(R.layout.fragment_metadata, container, false)
     }
@@ -85,7 +92,7 @@ class MetadataFragment : Fragment() {
         listener = null
     }
 
-    fun expand() {
+    private fun expand() {
         val binding = FragmentMetadataExpandedBinding.inflate(layoutInflater, view as ViewGroup, false)
         binding.metadata = metadata
         binding.root.setOnClickListener { collapse() }
