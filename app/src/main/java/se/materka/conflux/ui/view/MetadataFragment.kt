@@ -64,12 +64,23 @@ class MetadataFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         metadataViewModel?.metadata?.observe(this, Observer {
-            metadata.station = listViewModel?.selectedStation?.value ?: Station().apply { name = ""; url = "" }
             metadata.artist = it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
             metadata.title = it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
             metadata.show = it?.getString(ShoutcastMetadata.METADATA_KEY_SHOW)
             metadata.album = it?.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)
         })
+
+        metadataViewModel?.isPlaying?.observe(this, Observer { playing ->
+            if (playing != true) {
+                collapse()
+            }
+        })
+
+        listViewModel?.selectedStation?.observe(this, Observer { station ->
+            metadata.clear()
+            metadata.station = station ?: Station().apply { name = ""; url = "" }
+        })
+
         return inflater.inflate(R.layout.fragment_metadata, container, false)
     }
 
