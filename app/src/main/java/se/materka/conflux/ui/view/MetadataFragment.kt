@@ -16,7 +16,7 @@ import se.materka.conflux.databinding.FragmentMetadataCollapsedBinding
 import se.materka.conflux.databinding.FragmentMetadataExpandedBinding
 import se.materka.conflux.db.model.Station
 import se.materka.conflux.ui.MetadataBinding
-import se.materka.conflux.ui.viewmodel.ListViewModel
+import se.materka.conflux.ui.viewmodel.StationViewModel
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
@@ -54,8 +54,8 @@ class MetadataFragment : Fragment() {
         activity?.getViewModel<MetadataViewModel>()
     }
 
-    private val listViewModel: ListViewModel? by lazy {
-        activity?.getViewModel<ListViewModel>()
+    private val stationViewModel: StationViewModel? by lazy {
+        activity?.getViewModel<StationViewModel>()
     }
 
     private val metadata = MetadataBinding()
@@ -76,7 +76,7 @@ class MetadataFragment : Fragment() {
             }
         })
 
-        listViewModel?.selectedStation?.observe(this, Observer { station ->
+        stationViewModel?.selected?.observe(this, Observer { station ->
             metadata.clear()
             metadata.station = station ?: Station().apply { name = ""; url = "" }
         })

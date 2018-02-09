@@ -4,8 +4,6 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import com.github.salomonbrys.kotson.fromJson
-import com.google.gson.Gson
 import se.materka.conflux.db.model.Station
 import se.materka.conflux.db.repository.StationRepository
 
@@ -26,27 +24,27 @@ import se.materka.conflux.db.repository.StationRepository
  * limitations under the License.
  */
 
-class ListViewModel(application: Application, private val repository: StationRepository) : AndroidViewModel(application) {
+class StationViewModel(application: Application, private val repository: StationRepository) : AndroidViewModel(application) {
 
-    val selectedStation: MutableLiveData<Station> = MutableLiveData()
+    val selected: MutableLiveData<Station> = MutableLiveData()
 
-    fun getStations(): LiveData<List<Station>>? {
+    fun get(): LiveData<List<Station>>? {
         return repository.read()
     }
 
-    fun saveStation(station: Station): LiveData<Long> {
+    fun save(station: Station): LiveData<Long> {
         return repository.create(station)
     }
 
-    fun deleteStation(station: Station): LiveData<Boolean> {
+    fun delete(station: Station): LiveData<Boolean> {
         return repository.delete(station)
     }
 
-    fun updateStation(station: Station) {
+    fun update(station: Station) {
         repository.update(station)
     }
 
     fun select(station: Station) {
-        selectedStation.postValue(station)
+        selected.postValue(station)
     }
 }

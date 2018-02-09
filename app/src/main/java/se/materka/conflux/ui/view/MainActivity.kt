@@ -23,7 +23,7 @@ import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.db.model.Station
 import se.materka.conflux.service.MediaBrowserService
-import se.materka.conflux.ui.viewmodel.ListViewModel
+import se.materka.conflux.ui.viewmodel.StationViewModel
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
 import timber.log.Timber
 import java.lang.IllegalArgumentException
@@ -51,8 +51,8 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
         getViewModel<MetadataViewModel>()
     }
 
-    private val listViewModel: ListViewModel by lazy {
-        getViewModel<ListViewModel>()
+    private val stationViewModel: StationViewModel by lazy {
+        getViewModel<StationViewModel>()
     }
 
     private val mediaBrowser: MediaBrowserCompat by lazy {
@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
     val mediaControllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            metadataViewModel.onMetadataChanged(metadata, listViewModel.selectedStation.value)
+            metadataViewModel.onMetadataChanged(metadata, stationViewModel.selected.value)
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
             }
         })
 
-        listViewModel.selectedStation.observe(this, Observer
+        stationViewModel.selected.observe(this, Observer
         {
             val uri: Uri = Uri.parse(it?.url)
             try {
@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
                 .setOnConfirmListener { bundle ->
                     val station: Station? = bundle?.getParcelable(PlayFragment.EXTRA_STATION)
                     if (bundle?.getBoolean(PlayFragment.EXTRA_SAVE_STATION, false) == true && station != null) {
-                        listViewModel.saveStation(station)
+                        stationViewModel.save(station)
                     }
                 }
                 .setConfirmButton("PLAY")
