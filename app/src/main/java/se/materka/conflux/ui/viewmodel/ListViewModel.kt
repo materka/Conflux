@@ -30,15 +30,8 @@ class ListViewModel(application: Application, private val repository: StationRep
 
     val selectedStation: MutableLiveData<Station> = MutableLiveData()
 
-    /*fun getStations(): LiveData<List<Station>>? {
-        return repository.read()
-    }*/
-
     fun getStations(): LiveData<List<Station>>? {
-        val stations = MutableLiveData<List<Station>>()
-        val content = getApplication<Application>().assets.open("stations.json").reader().readText()
-        stations.postValue(Gson().fromJson(content))
-        return stations
+        return repository.read()
     }
 
     fun saveStation(station: Station): LiveData<Long> {
