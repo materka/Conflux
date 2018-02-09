@@ -1,16 +1,15 @@
 package se.materka.conflux.ui.view
 
+import android.app.AlertDialog
+import android.app.Dialog
 import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import android.support.v4.app.DialogFragment
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.franmontiel.fullscreendialog.FullScreenDialogContent
-import com.franmontiel.fullscreendialog.FullScreenDialogController
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentInfoBinding
 import se.materka.conflux.db.model.Station
+
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -27,31 +26,16 @@ import se.materka.conflux.db.model.Station
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class InfoFragment : Fragment(), FullScreenDialogContent {
+class InfoFragment : DialogFragment() {
 
-    private var station: Station? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            station = arguments!!.getParcelable(ARG_STATION)
-        }
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val binding: FragmentInfoBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_info, container, false)
-        binding.station = station
-        return binding.root
-    }
-
-    override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
-        return false
-    }
-
-    override fun onDialogCreated(dialogController: FullScreenDialogController?) {}
-
-    override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
-        return false
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val binding: FragmentInfoBinding = DataBindingUtil.inflate(LayoutInflater.from(activity), R.layout.fragment_info, null, false)
+        binding.station = arguments?.getParcelable(ARG_STATION)
+        return AlertDialog.Builder(activity, R.style.AppTheme_InfoDialog)
+                .setTitle("Station Information")
+                .setView(binding.root)
+                .setPositiveButton("CLOSE", { dialog, _ -> dialog?.dismiss() })
+                .create()
     }
 
     companion object {
@@ -66,10 +50,10 @@ class InfoFragment : Fragment(), FullScreenDialogContent {
          * @return A new instance of fragment BlankFragment.
          */
         // TODO: Rename and change types and number of parameters
-        fun newInstance(station: String): InfoFragment {
+        fun newInstance(station: Station): InfoFragment {
             val fragment = InfoFragment()
             val args = Bundle()
-            args.putString(ARG_STATION, station)
+            args.putParcelable(ARG_STATION, station)
             fragment.arguments = args
             return fragment
         }

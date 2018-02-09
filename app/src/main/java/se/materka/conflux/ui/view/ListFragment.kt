@@ -9,7 +9,6 @@ import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.franmontiel.fullscreendialog.FullScreenDialogFragment
 import kotlinx.android.synthetic.main.fragment_list.*
 import kotlinx.android.synthetic.main.menu_action.view.*
 import org.koin.android.architecture.ext.getViewModel
@@ -72,47 +71,28 @@ class ListFragment : Fragment() {
     }
 
     private fun itemLongClicked(station: Station) {
-        stationViewModel?.select(station)
-        val actionView = activity!!.layoutInflater.inflate(R.layout.menu_action, null)
-        val actionDialog = BottomSheetDialog(activity!!)
+        val actionView = LayoutInflater.from(context).inflate(R.layout.menu_action, null, false)
+        val actionDialog = BottomSheetDialog(context!!)
 
         actionView.info.setOnClickListener {
-            stationViewModel?.selected?.let {
-                FullScreenDialogFragment.Builder(activity!!)
-                        .setTitle("Information")
-                        .setContent(InfoFragment::class.java, Bundle().apply { putParcelable(InfoFragment.ARG_STATION, it.value) })
-                        .build()
-                        .show(fragmentManager, "InfoFragment")
-            }
+            InfoFragment.newInstance(station).show(fragmentManager, "InfoFragment")
             actionDialog.dismiss()
         }
 
         actionView.edit.setOnClickListener {
-            stationViewModel?.selected?.let { station ->
-                FullScreenDialogFragment.Builder(activity!!)
-                        .setTitle("Edit")
-                        .setContent(EditFragment::class.java, Bundle().apply { putParcelable(EditFragment.ARG_STATION, station.value) })
-                        .setConfirmButton("SAVE")
-                        .setOnConfirmListener {
-                            stationViewModel?.update(station.value!!)
-                        }
-                        .build()
-                        .show(fragmentManager, "EditFragment")
-            }
+            EditFragment.newInstance(station).show(fragmentManager, "EditFragment")
             actionDialog.dismiss()
         }
 
         actionView.delete.setOnClickListener {
-            stationViewModel?.selected?.let { station ->
-                AlertDialog.Builder(activity!!, R.style.AppTheme_WarningDialog)
-                        .setTitle("Remove")
-                        .setMessage("Are you sure you want to remove this station?")
-                        .setPositiveButton("REMOVE") { _, _ ->
-                            stationViewModel?.delete(station.value!!)
-                        }
-                        .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
-                        .show()
-            }
+            AlertDialog.Builder(activity!!, R.style.AppTheme_WarningDialog)
+                    .setTitle("Remove")
+                    .setMessage("Are you sure you want to remove this station?")
+                    .setPositiveButton("REMOVE") { _, _ ->
+                        stationViewModel?.delete(station)
+                    }
+                    .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
+                    .show()
             actionDialog.dismiss()
         }
 

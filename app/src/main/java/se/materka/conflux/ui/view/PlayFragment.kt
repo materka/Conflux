@@ -2,12 +2,10 @@ package se.materka.conflux.ui.view
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import android.support.v4.app.DialogFragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.franmontiel.fullscreendialog.FullScreenDialogContent
-import com.franmontiel.fullscreendialog.FullScreenDialogController
 import kotlinx.android.synthetic.main.fragment_play.*
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentPlayBinding
@@ -30,8 +28,7 @@ import se.materka.conflux.ui.hideKeyboard
  * limitations under the License.
  */
 
-class PlayFragment : Fragment(), FullScreenDialogContent {
-    private var dialogController: FullScreenDialogController? = null
+class PlayFragment : DialogFragment() {
     private val station: Station = Station()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -48,26 +45,12 @@ class PlayFragment : Fragment(), FullScreenDialogContent {
         save_and_play.setOnClickListener { onConfirm() }
     }
 
-    override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
-        onConfirm()
-        return true
-    }
-
-    override fun onDialogCreated(dialogController: FullScreenDialogController?) {
-        this.dialogController = dialogController
-    }
-
-    override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
-        view?.hideKeyboard()
-        return false
-    }
-
     private fun onConfirm() {
         view?.hideKeyboard()
-        dialogController?.confirm(Bundle().apply {
+        /*dialogController?.confirm(Bundle().apply {
             putParcelable(EXTRA_STATION, station)
             putBoolean(EXTRA_SAVE_STATION, toggle_save_container.isChecked)
-        })
+        })*/
     }
 
     companion object {

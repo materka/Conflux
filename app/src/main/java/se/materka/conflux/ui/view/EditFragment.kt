@@ -1,17 +1,19 @@
 package se.materka.conflux.ui.view
 
+import android.app.AlertDialog
+import android.app.Dialog
+import android.content.DialogInterface
 import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import android.support.v4.app.DialogFragment
+import android.util.Patterns
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.franmontiel.fullscreendialog.FullScreenDialogContent
-import com.franmontiel.fullscreendialog.FullScreenDialogController
+import kotlinx.android.synthetic.main.fragment_edit.*
+import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentEditBinding
 import se.materka.conflux.db.model.Station
-import se.materka.conflux.ui.hideKeyboard
+import se.materka.conflux.ui.viewmodel.StationViewModel
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -29,42 +31,52 @@ import se.materka.conflux.ui.hideKeyboard
  * limitations under the License.
  */
 
-class EditFragment : Fragment(), FullScreenDialogContent {
+class EditFragment : DialogFragment() {
 
-    private var station: Station? = null
+    private lateinit var station: Station
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            station = arguments!!.getParcelable(EditFragment.ARG_STATION)
-        }
+    private val stationViewModel: StationViewModel? by lazy {
+        activity?.getViewModel<StationViewModel>()
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val binding: FragmentEditBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_edit, container, false)
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        station = arguments!!.getParcelable(InfoFragment.ARG_STATION)
+        val binding: FragmentEditBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.fragment_edit, null, false)
         binding.station = station
-        return binding.root
+
+        val alertDialog = AlertDialog.Builder(activity, R.style.AppTheme_InfoDialog)
+                .setTitle("Edit Station")
+                .setView(binding.root)
+                .setPositiveButton("SAVE", {dialog, which ->  })
+                .setNegativeButton("CANCEL", { dialog, _ ->  dialog?.dismiss() })
+                .create()
+
+        alertDialog.setOnShowListener { dialog: DialogInterface ->
+            (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if(isValid(station.url)) {
+                    station.name = station.name ?: station.url
+                    stationViewModel?.update(station)
+                    dialog.dismiss()
+                } else {
+                    dialog.text_url.error = "Invalid URL, please provide a valid URL"
+                    dialog.text_url.requestFocus()
+                }
+            }
+        }
+        return alertDialog
     }
 
-    override fun onConfirmClick(dialogController: FullScreenDialogController?): Boolean {
-        view?.hideKeyboard()
-        return false
-    }
-
-    override fun onDialogCreated(dialogController: FullScreenDialogController?) {}
-
-    override fun onDiscardClick(dialogController: FullScreenDialogController?): Boolean {
-        view?.hideKeyboard()
-        return false
+    private fun isValid(url: String?): Boolean {
+        return url != null && Patterns.WEB_URL.matcher(url).matches()
     }
 
     companion object {
-        val ARG_STATION = "station"
+        private val ARG_STATION = "station"
 
-        fun newInstance(station: String): EditFragment {
+        fun newInstance(station: Station): EditFragment {
             val fragment = EditFragment()
             val args = Bundle()
-            args.putString(ARG_STATION, station)
+            args.putParcelable(ARG_STATION, station)
             fragment.arguments = args
             return fragment
         }
