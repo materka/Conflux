@@ -1,6 +1,21 @@
 <resources>
     <string name="app_name">Conflux</string>
-    <string name="drawer_open">Open navigation drawer</string>
-    <string name="drawer_close">Close navigation drawer</string>
+    <string name="url">URL</string>
+    <string name="save_station">Save station</string>
+    <string name="name">Name</string>
+
+
+    <string name="btn_save">SAVE</string>
+    <string name="btn_save_and_play">SAVE AND PLAY</string>
+    <string name="btn_close">CLOSE</string>
+    <string name="btn_cancel">CANCEL</string>
+    <string name="btn_play">PLAY</string>
+
+    <string name="title_play">Play Station</string>
+    <string name="title_edit">Edit Station</string>
+    <string name="title_info">Station Information</string>
+
+    <string name="error_invalid_url">Invalid URL, please provide a valid URL</string>
+
 
 </resources>

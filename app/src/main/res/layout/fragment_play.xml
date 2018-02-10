@@ -3,9 +3,15 @@
 
     <data>
 
+        <import type="android.view.View" />
+
         <variable
             name="station"
             type="se.materka.conflux.db.model.Station" />
+
+        <variable
+            name="save"
+            type="Boolean" />
     </data>
 
     <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -20,12 +26,12 @@
             app:helperText="Start with http://">
 
             <android.support.design.widget.TextInputEditText
-                android:id="@+id/url"
+                android:id="@+id/input_url"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:freezesText="true"
-                android:text="@={station.url}"
-                android:hint="URL Address" />
+                android:hint="@string/url"
+                android:text="@={station.url}" />
 
         </se.materka.conflux.ui.CustomTextInputLayout>
 
@@ -39,22 +45,22 @@
                 android:layout_height="wrap_content">
 
                 <CheckBox
-                    android:id="@+id/toggle_save_container"
+                    android:id="@+id/cb_save"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Save Station"
+                    android:checked="@={save}"
+                    android:text="@string/save_station"
                     android:textSize="14sp" />
             </RelativeLayout>
 
 
             <LinearLayout
-                android:id="@+id/save_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:animateLayoutChanges="true"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:visibility="@{ save ? View.VISIBLE : View.GONE }">
 
                 <se.materka.conflux.ui.CustomTextInputLayout
                     android:layout_width="match_parent"
@@ -63,23 +69,14 @@
                     app:helperText="User friendly name to accompany url in listing">
 
                     <android.support.design.widget.TextInputEditText
-                        android:id="@+id/name"
+                        android:id="@+id/input_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:freezesText="true"
-                        android:text="@={station.name}"
-                        android:hint="Name" />
+                        android:hint="@string/name"
+                        android:text="@={station.name}" />
 
                 </se.materka.conflux.ui.CustomTextInputLayout>
-
-                <Button
-                    android:id="@+id/save_and_play"
-                    style="?android:attr/borderlessButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:text="SAVE AND PLAY"
-                    android:textColor="@color/primary_dark" />
             </LinearLayout>
         </LinearLayout>
 

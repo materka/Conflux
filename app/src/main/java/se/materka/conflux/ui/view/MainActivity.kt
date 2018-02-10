@@ -20,7 +20,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.db.model.Station
 import se.materka.conflux.service.MediaBrowserService
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
 import se.materka.conflux.ui.viewmodel.StationViewModel
@@ -105,6 +104,8 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar as Toolbar)
 
+        btn_play.setOnClickListener { showPlayDialog() }
+
         btn_toggle_play.showPlay()
 
         metadataViewModel.isPlaying.observe(this, Observer { playing ->
@@ -160,18 +161,7 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
     }
 
     private fun showPlayDialog() {
-        /*FullScreenDialogFragment.Builder(this@MainActivity)
-                .setTitle("Play")
-                .setContent(PlayFragment::class.java, null)
-                .setOnConfirmListener { bundle ->
-                    val station: Station? = bundle?.getParcelable(PlayFragment.EXTRA_STATION)
-                    if (bundle?.getBoolean(PlayFragment.EXTRA_SAVE_STATION, false) == true && station != null) {
-                        stationViewModel.save(station)
-                    }
-                }
-                .setConfirmButton("PLAY")
-                .build()
-                .show(supportFragmentManager, PlayFragment::class.java.name)*/
+        PlayFragment().show(supportFragmentManager, "PlayFragment")
     }
 
     private fun setBottomSheetState(state: Int) {
