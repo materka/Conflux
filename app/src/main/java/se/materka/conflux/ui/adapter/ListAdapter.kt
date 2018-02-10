@@ -34,7 +34,7 @@ class ListAdapter(val onItemClicked: (station: Station) -> Unit?,
         private val FOOTER_VIEW = 1
     }
 
-    private var selected: Int = -1
+    private var selected: Station? = null
     private var parent: RecyclerView? = null
 
     private var stations: List<Station> = mutableListOf()
@@ -49,9 +49,7 @@ class ListAdapter(val onItemClicked: (station: Station) -> Unit?,
             if (holder is StationViewHolder) {
                 stations[position].let { station ->
                     holder.bind(station)
-                    if (position == selected) {
-                        holder.itemView.selected?.visibility = View.VISIBLE
-                    }
+                    holder.itemView.selected?.visibility = if (station.id == selected?.id) View.VISIBLE else View.GONE
                 }
             }
         } catch (e: Exception) {
@@ -87,7 +85,7 @@ class ListAdapter(val onItemClicked: (station: Station) -> Unit?,
         for (i in 0 until itemCount) {
             parent?.findViewHolderForAdapterPosition(i)?.itemView?.selected?.visibility = View.GONE
         }
-        selected = position
+        selected = stations[position]
         notifyDataSetChanged()
     }
 
