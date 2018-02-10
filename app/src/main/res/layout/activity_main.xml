@@ -57,7 +57,7 @@
             android:layout_height="60dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            app:ico_icon="cmd-playlist-play"
+            app:ico_icon="cmd-plus"
             app:ico_size="24dp"
             app:ico_color="@android:color/white"
             tools:ignore="MissingPrefix" />
