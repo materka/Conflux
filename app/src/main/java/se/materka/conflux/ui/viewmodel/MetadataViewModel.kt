@@ -52,7 +52,7 @@ class MetadataViewModel(application: Application, private val stationRepository:
 
     fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
         isPlaying.value = when (state?.state) {
-            PlaybackStateCompat.STATE_PLAYING, PlaybackStateCompat.STATE_BUFFERING -> true
+            PlaybackStateCompat.STATE_PLAYING -> true
             else -> false
         }
     }

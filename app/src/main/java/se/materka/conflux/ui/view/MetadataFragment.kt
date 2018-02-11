@@ -62,6 +62,8 @@ class MetadataFragment : Fragment() {
 
     private var listener: Listener? = null
 
+    private var state: ViewState? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         metadataViewModel?.metadata?.observe(this, Observer {
             metadata.artist = it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
@@ -104,20 +106,26 @@ class MetadataFragment : Fragment() {
     }
 
     private fun expand() {
-        val binding = FragmentMetadataExpandedBinding.inflate(layoutInflater, view as ViewGroup, false)
-        binding.metadata = metadata
-        binding.root.setOnClickListener { collapse() }
-        transition(binding.root)
-        listener?.onViewStateChanged(ViewState.EXPANDED)
+        if (state != ViewState.EXPANDED) {
+            val binding = FragmentMetadataExpandedBinding.inflate(layoutInflater, view as ViewGroup, false)
+            binding.metadata = metadata
+            binding.root.setOnClickListener { collapse() }
+            transition(binding.root)
+            state = ViewState.EXPANDED
+            listener?.onViewStateChanged(ViewState.EXPANDED)
+        }
     }
 
     private fun collapse(updateListener: Boolean = true) {
-        val binding = FragmentMetadataCollapsedBinding.inflate(layoutInflater, view as ViewGroup, false)
-        binding.metadata = metadata
-        binding.root.setOnClickListener { expand() }
-        transition(binding.root)
-        if (updateListener) {
-            listener?.onViewStateChanged(ViewState.COLLAPSED)
+        if (state != ViewState.COLLAPSED) {
+            val binding = FragmentMetadataCollapsedBinding.inflate(layoutInflater, view as ViewGroup, false)
+            binding.metadata = metadata
+            binding.root.setOnClickListener { expand() }
+            transition(binding.root)
+            state = ViewState.COLLAPSED
+            if (updateListener) {
+                listener?.onViewStateChanged(ViewState.COLLAPSED)
+            }
         }
     }
 
