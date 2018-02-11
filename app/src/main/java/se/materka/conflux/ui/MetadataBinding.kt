@@ -62,6 +62,7 @@ class MetadataBinding : BaseObservable() {
 
     fun clear() {
         artist = null
+        title = null
         show = null
         album = null
         station = Station().apply { name = ""; url = "" }
