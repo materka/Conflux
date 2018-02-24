@@ -3,6 +3,9 @@ package se.materka.conflux.service
 import android.net.Uri
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
+import timber.log.Timber
+import java.io.IOException
 import java.io.InputStream
 
 /**
@@ -37,28 +40,34 @@ object PlaylistService {
                 .url(uri.toString())
                 .get()
                 .build()
+        var response: Response? = null
+        try {
+            response = OkHttpClient().newCall(request).execute()
+            val inputStream: InputStream? = response.body()?.byteStream()
+            inputStream?.use { stream ->
+                stream.apply {
+                    bufferedReader().use {
+                        it.readLines().forEach { line ->
+                            line.trim().let {
+                                if (uri.path.endsWith(PLS, true)) {
+                                    if (it.contains(HTTP, true)) {
+                                        playlist.add(Uri.parse(it.substring(it.indexOf(HTTP, 0, true))))
+                                    }
+                                } else if (uri.path.endsWith(M3U, true) || uri.path.endsWith(M3U8, true)) {
+                                    if (it.isNotEmpty() && it[0] != '#' && it[0] != '<') {
+                                        playlist.add(Uri.parse(it))
+                                    }
+                                }
 
-        val response = OkHttpClient().newCall(request).execute()
-        val inputStream: InputStream? = response.body()?.byteStream()
-        inputStream?.use { stream ->
-            stream.apply {
-                bufferedReader().use {
-                    it.readLines().forEach { line ->
-                        line.trim().let {
-                            if (uri.path.endsWith(PLS, true)) {
-                                if (it.contains(HTTP, true)) {
-                                    playlist.add(Uri.parse(it.substring(it.indexOf(HTTP, 0, true))))
-                                }
-                            } else if (uri.path.endsWith(M3U, true) || uri.path.endsWith(M3U8, true)) {
-                                if (it.isNotEmpty() && it[0] != '#' && it[0] != '<') {
-                                    playlist.add(Uri.parse(it))
-                                }
                             }
-
                         }
                     }
                 }
             }
+        } catch (e: IOException) {
+            Timber.e(e, "Playlist parser failed")
+        } finally {
+            response?.close()
         }
         return playlist
     }
