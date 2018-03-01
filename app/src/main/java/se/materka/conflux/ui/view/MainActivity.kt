@@ -173,11 +173,13 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
     }
 
     private fun setBottomSheetState(state: Int) {
-        BottomSheetBehavior.from(metadata.view).let {
-            if (it.state != state) {
-                it.state = state
-                (toolbar.parent as AppBarLayout).setExpanded(state != BottomSheetBehavior.STATE_EXPANDED, true)
+        if (metadata != null) {
+            BottomSheetBehavior.from(metadata.view).let {
+                if (it.state != state) {
+                    it.state = state
+                    (toolbar.parent as AppBarLayout).setExpanded(state != BottomSheetBehavior.STATE_EXPANDED, true)
 
+                }
             }
         }
     }

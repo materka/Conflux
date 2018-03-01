@@ -69,7 +69,6 @@ class MetadataFragment : Fragment() {
             metadata.artist = it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
             metadata.title = it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
             metadata.show = it?.getString(ShoutcastMetadata.METADATA_KEY_SHOW)
-            metadata.album = it?.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)
         })
 
         metadataViewModel?.isPlaying?.observe(this, Observer { playing ->

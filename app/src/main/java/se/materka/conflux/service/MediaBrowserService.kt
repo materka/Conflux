@@ -192,25 +192,6 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
                     .putString(ShoutcastMetadata.METADATA_KEY_FORMAT, metadata.getString(ShoutcastMetadata.METADATA_KEY_FORMAT))
                     .putString(ShoutcastMetadata.METADATA_KEY_STATION, metadata.getString(ShoutcastMetadata.METADATA_KEY_STATION))
                     .putString(ShoutcastMetadata.METADATA_KEY_URL, metadata.getString(ShoutcastMetadata.METADATA_KEY_URL))
-
-            ArtistArtService(getString(R.string.spotify_client_id), getString(R.string.spotify_client_secret))
-                    .getArt(metadata.getString(ShoutcastMetadata.METADATA_KEY_ARTIST)) { uri ->
-                        async(CommonPool) {
-                            val bm = bg {
-                                Picasso
-                                        .with(this@MediaBrowserService)
-                                        .load(uri)
-                                        .placeholder(R.drawable.md_streaming_radio)
-                                        .get()
-                            }
-                            val mediaMetadata = mediaMetadataBuilder
-                                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, uri.toString())
-                                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, bm.await())
-                                    .build()
-                            mediaSession.setMetadata(mediaMetadata)
-                            notificationManager.notify(SERVICE_ID, NotificationHelper.build(this@MediaBrowserService, mediaSession))
-                        }
-                    }
             mediaSession.setMetadata(mediaMetadataBuilder.build())
             notificationManager.notify(SERVICE_ID, NotificationHelper.build(this@MediaBrowserService, mediaSession))
         }

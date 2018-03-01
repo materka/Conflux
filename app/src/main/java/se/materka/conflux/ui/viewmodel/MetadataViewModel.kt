@@ -36,7 +36,6 @@ class MetadataViewModel(application: Application, private val stationRepository:
     fun onMetadataChanged(data: MediaMetadataCompat?, currentStation: Station?) {
         Timber.i("New metadata")
         metadata.value = data
-        artistArt.value = data?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
         val bitrate = data?.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE)
         val format = data?.getString(ShoutcastMetadata.METADATA_KEY_FORMAT)
 

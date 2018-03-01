@@ -44,14 +44,6 @@ class MetadataBinding : BaseObservable() {
             notifyPropertyChanged(BR.show)
         }
 
-    var album: String? = null
-        @Bindable
-        get() = field
-        set(value) {
-            field = value
-            notifyPropertyChanged(BR.album)
-        }
-
     var station: Station = Station()
         @Bindable
         get() = field
@@ -64,7 +56,6 @@ class MetadataBinding : BaseObservable() {
         artist = null
         title = null
         show = null
-        album = null
         station = Station().apply { name = ""; url = "" }
     }
 }

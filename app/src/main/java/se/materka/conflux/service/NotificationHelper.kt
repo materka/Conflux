@@ -72,7 +72,6 @@ object NotificationHelper {
             setContentTitle(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
             setContentText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
             setSubText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
-            setLargeIcon(mediaMetadata?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART))
             setSmallIcon(R.drawable.md_play)
             setOngoing(mediaSession.isActive)
             setContentIntent(controller.sessionActivity)
