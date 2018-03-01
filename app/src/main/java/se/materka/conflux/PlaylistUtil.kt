@@ -1,4 +1,4 @@
-package se.materka.conflux.service
+package se.materka.conflux
 
 import android.net.Uri
 import okhttp3.OkHttpClient
@@ -24,7 +24,7 @@ import java.io.InputStream
  * limitations under the License.
  */
 
-object PlaylistService {
+object PlaylistUtil {
 
     private val M3U: String = "m3u"
     private val M3U8: String = "m3u8"
