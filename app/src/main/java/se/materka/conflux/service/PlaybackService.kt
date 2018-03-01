@@ -188,7 +188,9 @@ class PlaybackService(mediaBrowser: MediaBrowserServiceCompat, private val callb
             player.playWhenReady = false
             audioSource?.releaseSource()
 
-            callback.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
+            if (!releasePlayer) {
+                callback.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
+            }
         }
 
         if (wifiLock.isHeld) {

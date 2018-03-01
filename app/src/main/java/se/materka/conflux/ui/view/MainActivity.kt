@@ -160,6 +160,14 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
         }
     }
 
+    override fun onBackPressed() {
+        if (BottomSheetBehavior.from(metadata.view).state == BottomSheetBehavior.STATE_EXPANDED) {
+            setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
+        } else {
+            finish()
+        }
+    }
+
     private fun showPlayDialog() {
         PlayFragment().show(supportFragmentManager, "PlayFragment")
     }

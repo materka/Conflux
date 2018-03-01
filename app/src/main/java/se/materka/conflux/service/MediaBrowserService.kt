@@ -58,7 +58,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         MediaSessionCompat(this@MediaBrowserService, MediaBrowserService::class.java.name).apply {
             setSessionActivity(intent)
             setPlaybackState(stateBuilder.build())
-            setCallback(MediaSessionCallback())
+            setCallback(mediaSessionCallback)
             setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
                     or MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
         }
@@ -76,10 +76,35 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
 
     private val audioBecomingNoisyIntentFilter: IntentFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
 
-    private var audioBecomingNoisyReceiver: BecomingNoisyReceiver? = null
+    private val audioBecomingNoisyReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY == intent.action) {
+                stop()
+            }
+        }
+    }
 
     private val player: PlaybackService by lazy {
         PlaybackService(this, PlaybackCallback())
+    }
+
+    private val mediaSessionCallback: MediaSessionCompat.Callback = object : MediaSessionCompat.Callback() {
+
+        override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
+            play(uri)
+        }
+
+        override fun onPlay() {
+            play()
+        }
+
+        override fun onPause() {
+            stop()
+        }
+
+        override fun onStop() {
+            stop()
+        }
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
@@ -107,7 +132,6 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     }
 
     private fun play(uri: Uri? = null) {
-        audioBecomingNoisyReceiver = audioBecomingNoisyReceiver ?: BecomingNoisyReceiver()
         registerReceiver(audioBecomingNoisyReceiver, audioBecomingNoisyIntentFilter)
         if (uri != null) {
             player.play(uri)
@@ -121,9 +145,15 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     private fun stop(releasePlayer: Boolean = false) {
         player.stop(releasePlayer)
         mediaSession.isActive = false
-        audioBecomingNoisyReceiver?.let { unregisterReceiver(it) }
-        stopForeground(false)
-        notificationManager.notify(SERVICE_ID, NotificationHelper.build(this, mediaSession))
+        try {
+            unregisterReceiver(audioBecomingNoisyReceiver)
+        } catch (e: IllegalArgumentException) {
+            Timber.i(e, "AudioBecomingNoisyReceiver already unregistered")
+        }
+        stopForeground(releasePlayer)
+        if (!releasePlayer) {
+            notificationManager.notify(SERVICE_ID, NotificationHelper.build(this, mediaSession))
+        }
     }
 
     private fun setPlaybackState(state: PlaybackStateCompat) {
@@ -186,44 +216,4 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         }
 
     }
-
-    private inner class MediaSessionCallback : MediaSessionCompat.Callback() {
-
-        override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
-            play(uri)
-        }
-
-        override fun onPlay() {
-            play()
-        }
-
-        override fun onPause() {
-            stop()
-        }
-
-        override fun onStop() {
-            /**
-             * Some extra sugar for handling pre-lollipop.
-             * Service notification cant not be set dismissible if service is started in foreground.
-             * (It can only be removed using stopForeground(true))
-             * So we use Media Style cancel button to send ACTION_STOP only if the media session is inactive.
-             * Which means the playback has already been stopped once, and this second call indicate the user
-             * wants to select rid of the notification.
-             */
-            if (!mediaSession.isActive) {
-                stopForeground(true)
-            } else {
-                stop()
-            }
-        }
-    }
-
-    private inner class BecomingNoisyReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY == intent.action) {
-                stop()
-            }
-        }
-    }
-
 }
