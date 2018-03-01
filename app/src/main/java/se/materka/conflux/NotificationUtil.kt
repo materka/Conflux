@@ -1,4 +1,4 @@
-package se.materka.conflux.service
+package se.materka.conflux
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -13,7 +13,6 @@ import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import se.materka.conflux.R
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
 

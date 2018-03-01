@@ -1,4 +1,4 @@
-package se.materka.conflux.service
+package se.materka.conflux
 
 import android.app.PendingIntent
 import android.content.BroadcastReceiver

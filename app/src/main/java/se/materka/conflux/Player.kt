@@ -1,4 +1,4 @@
-package se.materka.conflux.service
+package se.materka.conflux
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -20,8 +20,6 @@ import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.util.Util
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.async
-import se.materka.conflux.AudioFocusManager
-import se.materka.conflux.R
 import se.materka.exoplayershoutcastdatasource.ShoutcastDataSourceFactory
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadataListener
@@ -217,9 +215,9 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
                 uri?.let {
                     if (it != Uri.EMPTY) {
                         currentUri = it
-                        if (playlist.isEmpty() && PlaylistService.isPlayList(it)) {
+                        if (playlist.isEmpty() && PlaylistUtil.isPlayList(it)) {
                             async(CommonPool) {
-                                PlaylistService.getPlaylist(it).let { list ->
+                                PlaylistUtil.getPlaylist(it).let { list ->
                                     if (!list.isEmpty()) {
                                         playlist.addAll(list)
                                         playUri(playlist.pop())

@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.service.MediaBrowserService
+import se.materka.conflux.MediaBrowserService
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
 import se.materka.conflux.ui.viewmodel.StationViewModel
 import timber.log.Timber
