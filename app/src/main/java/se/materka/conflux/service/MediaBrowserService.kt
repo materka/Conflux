@@ -15,11 +15,6 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import com.squareup.picasso.Picasso
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
-import org.jetbrains.anko.coroutines.experimental.bg
-import se.materka.conflux.R
 import se.materka.conflux.ui.view.MainActivity
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import timber.log.Timber
@@ -84,8 +79,8 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         }
     }
 
-    private val player: PlaybackService by lazy {
-        PlaybackService(this, PlaybackCallback())
+    private val player: Player by lazy {
+        Player(this, PlaybackCallback())
     }
 
     private val mediaSessionCallback: MediaSessionCompat.Callback = object : MediaSessionCompat.Callback() {
@@ -139,7 +134,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
             player.play()
         }
         mediaSession.isActive = true
-        startForeground(SERVICE_ID, NotificationHelper.build(this, mediaSession))
+        startForeground(SERVICE_ID, NotificationUtil.build(this, mediaSession))
     }
 
     private fun stop(releasePlayer: Boolean = false) {
@@ -152,7 +147,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         }
         stopForeground(releasePlayer)
         if (!releasePlayer) {
-            notificationManager.notify(SERVICE_ID, NotificationHelper.build(this, mediaSession))
+            notificationManager.notify(SERVICE_ID, NotificationUtil.build(this, mediaSession))
         }
     }
 
@@ -167,7 +162,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         }
     }
 
-    private inner class PlaybackCallback : PlaybackService.Callback {
+    private inner class PlaybackCallback : Player.Callback {
         override fun onPlaybackStateChanged(state: Int) {
             stateBuilder.setState(state, 0L, 0f).build().also {
                 setPlaybackState(it)
@@ -193,7 +188,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
                     .putString(ShoutcastMetadata.METADATA_KEY_STATION, metadata.getString(ShoutcastMetadata.METADATA_KEY_STATION))
                     .putString(ShoutcastMetadata.METADATA_KEY_URL, metadata.getString(ShoutcastMetadata.METADATA_KEY_URL))
             mediaSession.setMetadata(mediaMetadataBuilder.build())
-            notificationManager.notify(SERVICE_ID, NotificationHelper.build(this@MediaBrowserService, mediaSession))
+            notificationManager.notify(SERVICE_ID, NotificationUtil.build(this@MediaBrowserService, mediaSession))
         }
 
     }

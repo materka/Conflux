@@ -33,7 +33,7 @@ import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
  * limitations under the License.
  */
 
-object NotificationHelper {
+object NotificationUtil {
 
     fun build(context: Context, mediaSession: MediaSessionCompat): Notification {
         val builder = getBuilder(context, mediaSession)

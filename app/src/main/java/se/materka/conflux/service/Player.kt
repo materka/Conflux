@@ -47,8 +47,7 @@ import java.util.*
  * limitations under the License.
  */
 
-class PlaybackService(mediaBrowser: MediaBrowserServiceCompat, private val callback: Callback) : Player.EventListener,
-        ShoutcastMetadataListener {
+class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Callback) : ShoutcastMetadataListener {
 
     companion object {
         // The volume we set the media player to when we lose audio focus, but are
@@ -73,17 +72,6 @@ class PlaybackService(mediaBrowser: MediaBrowserServiceCompat, private val callb
         Stack<Uri>()
     }
 
-    private val player: SimpleExoPlayer by lazy {
-        ExoPlayerFactory.newSimpleInstance(context,
-                DefaultTrackSelector()).apply {
-            addListener(this@PlaybackService)
-            audioAttributes = AudioAttributes.Builder()
-                    .setUsage(C.USAGE_MEDIA)
-                    .setContentType(C.CONTENT_TYPE_MUSIC)
-                    .build()
-        }
-    }
-
     private val dataSourceFactory: ShoutcastDataSourceFactory by lazy {
         ShoutcastDataSourceFactory(
                 Util.getUserAgent(context, context.getString(R.string.app_name)), this)
@@ -104,77 +92,91 @@ class PlaybackService(mediaBrowser: MediaBrowserServiceCompat, private val callb
 
     private val audioFocusManager: AudioFocusManager = AudioFocusManager(mediaBrowser, { onAudioFocusChanged() })
 
+    private val playerListener: com.google.android.exoplayer2.Player.EventListener = object : com.google.android.exoplayer2.Player.EventListener {
+
+        override fun onPlayerError(error: ExoPlaybackException?) {
+            Timber.e(error)
+            if (!playlist.isEmpty()) {
+                play(playlist.pop())
+            } else {
+                callback.onError(PlaybackStateCompat.STATE_ERROR, "No working URLs found")
+            }
+            if (error?.sourceException is HttpDataSource.InvalidResponseCodeException) {
+                val responseCode = (error.sourceException as HttpDataSource.InvalidResponseCodeException).responseCode
+                when (responseCode) {
+                    404 -> {
+                        callback.onError(PlaybackStateCompat.STATE_ERROR, "Url not found")
+                    }
+                }
+            }
+        }
+
+        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+            when (playbackState) {
+                com.google.android.exoplayer2.Player.STATE_BUFFERING -> {
+                    Timber.i("PlaybackState: Buffering")
+                    audioState = PlaybackStateCompat.STATE_BUFFERING
+                }
+                com.google.android.exoplayer2.Player.STATE_ENDED -> {
+                    Timber.i("PlaybackState: Ended")
+                    audioState = PlaybackStateCompat.STATE_STOPPED
+                }
+                com.google.android.exoplayer2.Player.STATE_IDLE -> {
+                    Timber.i("PlaybackState: Idle")
+                    audioState = PlaybackStateCompat.STATE_NONE
+                }
+                com.google.android.exoplayer2.Player.STATE_READY -> {
+                    Timber.i("PlaybackState: Ready")
+                    audioState = if (playWhenReady) {
+                        PlaybackStateCompat.STATE_PLAYING
+                    } else {
+                        PlaybackStateCompat.STATE_STOPPED
+                    }
+                }
+                else -> audioState = PlaybackStateCompat.STATE_NONE
+            }
+            callback.onPlaybackStateChanged(audioState)
+        }
+
+        override fun onLoadingChanged(isLoading: Boolean) {
+            Timber.d("Loading: $isLoading")
+        }
+
+        override fun onPositionDiscontinuity() {
+            Timber.d("onPositionDiscontinuity: discontinuity detected")
+        }
+
+        override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
+            Timber.d("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
+        }
+
+        override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
+            Timber.d("onTracksChanged")
+        }
+
+        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
+            Timber.d("onPlaybackParameterChanged")
+        }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            Timber.d("onRepeatModeChanged")
+        }
+    }
+
+    private val player: SimpleExoPlayer by lazy {
+        ExoPlayerFactory.newSimpleInstance(context,
+                DefaultTrackSelector()).apply {
+            addListener(playerListener)
+            audioAttributes = AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.CONTENT_TYPE_MUSIC)
+                    .build()
+        }
+    }
+
     override fun onMetadataReceived(data: ShoutcastMetadata) {
         Timber.i("Metadata Received")
         callback.onMetadataReceived(data)
-    }
-
-    override fun onPlayerError(error: ExoPlaybackException?) {
-        Timber.e(error)
-        if (!playlist.isEmpty()) {
-            play(playlist.pop())
-        } else {
-            callback.onError(PlaybackStateCompat.STATE_ERROR, "No working URLs found")
-        }
-        if (error?.sourceException is HttpDataSource.InvalidResponseCodeException) {
-            val responseCode = (error.sourceException as HttpDataSource.InvalidResponseCodeException).responseCode
-            when (responseCode) {
-                404 -> {
-                    callback.onError(PlaybackStateCompat.STATE_ERROR, "Url not found")
-                }
-            }
-        }
-    }
-
-    override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-        when (playbackState) {
-            Player.STATE_BUFFERING -> {
-                Timber.i("PlaybackState: Buffering")
-                audioState = PlaybackStateCompat.STATE_BUFFERING
-            }
-            Player.STATE_ENDED -> {
-                Timber.i("PlaybackState: Ended")
-                audioState = PlaybackStateCompat.STATE_STOPPED
-            }
-            Player.STATE_IDLE -> {
-                Timber.i("PlaybackState: Idle")
-                audioState = PlaybackStateCompat.STATE_NONE
-            }
-            Player.STATE_READY -> {
-                Timber.i("PlaybackState: Ready")
-                audioState = if (playWhenReady) {
-                    PlaybackStateCompat.STATE_PLAYING
-                } else {
-                    PlaybackStateCompat.STATE_STOPPED
-                }
-            }
-            else -> audioState = PlaybackStateCompat.STATE_NONE
-        }
-        callback.onPlaybackStateChanged(audioState)
-    }
-
-    override fun onLoadingChanged(isLoading: Boolean) {
-        Timber.d("Loading: $isLoading")
-    }
-
-    override fun onPositionDiscontinuity() {
-        Timber.d("onPositionDiscontinuity: discontinuity detected")
-    }
-
-    override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
-        Timber.d("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
-    }
-
-    override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-        Timber.d("onTracksChanged")
-    }
-
-    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-        Timber.d("onPlaybackParameterChanged")
-    }
-
-    override fun onRepeatModeChanged(repeatMode: Int) {
-        Timber.d("onRepeatModeChanged")
     }
 
     fun stop(releasePlayer: Boolean = false) {
