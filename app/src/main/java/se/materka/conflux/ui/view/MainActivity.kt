@@ -19,8 +19,8 @@ import com.mikepenz.iconics.context.IconicsContextWrapper
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 import org.koin.android.architecture.ext.getViewModel
-import se.materka.conflux.R
 import se.materka.conflux.MediaBrowserService
+import se.materka.conflux.R
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
 import se.materka.conflux.ui.viewmodel.StationViewModel
 import timber.log.Timber
@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
             val uri: Uri = Uri.parse(it?.url)
             try {
                 if (it?.url?.isEmpty() == true) throw IllegalArgumentException("URL is not set")
-                mediaController.transportControls?.playFromUri(uri, null)
+                mediaController.transportControls?.playFromUri(uri, Bundle().apply { putParcelable("EXTRA_STATION", it) })
             } catch (e: IllegalArgumentException) {
                 AlertDialog.Builder(this, R.style.AppTheme_ErrorDialog)
                         .setTitle("Error")

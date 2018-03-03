@@ -71,7 +71,7 @@ object NotificationUtil {
             // Add the metadata for the currently playing track
             setContentTitle(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
             setContentText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
-            setSubText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
+            setSubText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_STATION))
 
             // Add an app icon
             setSmallIcon(R.drawable.md_play)

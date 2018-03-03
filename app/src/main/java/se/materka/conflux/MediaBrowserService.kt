@@ -15,6 +15,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import se.materka.conflux.db.model.Station
 import se.materka.conflux.ui.view.MainActivity
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import timber.log.Timber
@@ -42,6 +43,8 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     companion object {
         val SERVICE_ID: Int = 1
     }
+
+    private var nowPlaying: Station? = null
 
     private val mediaSession: MediaSessionCompat by lazy {
 
@@ -94,6 +97,10 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
 
         override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
             play(uri)
+            // Use application class loader to un-marshall custom class, else system class loader will be used which does not
+            // recognize custom class and produce BadParcelableException: ClassNotFoundException
+            extras?.classLoader = classLoader
+            nowPlaying = extras?.getParcelable("EXTRA_STATION") ?: Station().apply { name = uri?.toString() }
         }
 
         override fun onPlay() {
@@ -192,11 +199,10 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
                     .putLong(ShoutcastMetadata.METADATA_KEY_BITRATE, metadata.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE))
                     .putLong(ShoutcastMetadata.METADATA_KEY_CHANNELS, metadata.getLong(ShoutcastMetadata.METADATA_KEY_CHANNELS))
                     .putString(ShoutcastMetadata.METADATA_KEY_FORMAT, metadata.getString(ShoutcastMetadata.METADATA_KEY_FORMAT))
-                    .putString(ShoutcastMetadata.METADATA_KEY_STATION, metadata.getString(ShoutcastMetadata.METADATA_KEY_STATION))
+                    .putString(ShoutcastMetadata.METADATA_KEY_STATION, nowPlaying?.name ?: metadata.getString(ShoutcastMetadata.METADATA_KEY_URL))
                     .putString(ShoutcastMetadata.METADATA_KEY_URL, metadata.getString(ShoutcastMetadata.METADATA_KEY_URL))
             mediaSession.setMetadata(mediaMetadataBuilder.build())
             notificationManager.notify(SERVICE_ID, NotificationUtil.build(this@MediaBrowserService, mediaSession))
         }
-
     }
 }
