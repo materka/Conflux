@@ -80,7 +80,7 @@ object NotificationUtil {
             setContentIntent(controller.sessionActivity)
 
             // Stop the service when the notification is swiped away
-            setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context.applicationContext, PlaybackStateCompat.ACTION_STOP))
+            //setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context.applicationContext, PlaybackStateCompat.ACTION_STOP))
 
             // Make the transport controls visible on the lockscreen
             setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

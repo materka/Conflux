@@ -132,7 +132,6 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     override fun onDestroy() {
         stop(true)
         super.onDestroy()
-
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
@@ -152,17 +151,15 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     }
 
     private fun stop(releasePlayer: Boolean = false) {
-        player.stop(releasePlayer)
-        mediaSession.isActive = false
         try {
             unregisterReceiver(audioBecomingNoisyReceiver)
         } catch (e: IllegalArgumentException) {
-            Timber.i(e, "AudioBecomingNoisyReceiver already unregistered")
+            // Do nothing, the receiver has already been unregistered
         }
-        stopForeground(releasePlayer)
-        if (!releasePlayer) {
-            notificationManager.notify(SERVICE_ID, NotificationUtil.build(this, mediaSession))
-        }
+
+        player.stop(releasePlayer)
+        mediaSession.isActive = false
+        stopForeground(true)
     }
 
     private fun setPlaybackState(state: PlaybackStateCompat) {
