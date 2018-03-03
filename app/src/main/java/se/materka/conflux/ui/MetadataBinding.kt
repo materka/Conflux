@@ -3,7 +3,7 @@ package se.materka.conflux.ui
 import android.databinding.BaseObservable
 import android.databinding.Bindable
 import se.materka.conflux.BR
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 
 /**
  * Copyright 2017 Mattias Karlsson

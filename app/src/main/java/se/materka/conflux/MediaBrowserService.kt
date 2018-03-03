@@ -15,7 +15,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.ui.view.MainActivity
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import timber.log.Timber
@@ -166,7 +166,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         try {
             mediaSession.setPlaybackState(state)
         } catch (e: IllegalStateException) {
-            // TODO: Investigate why for some unknown reason we occasionally select an exception for
+            // TODO: Investigate why for some unknown reason we occasionally selectAll an exception for
             // "beginBroadcast() called while already in a broadast"
             // RemoteCallbackList.beginBroadcast -> Måste kallas på samma tråd hela tiden. Kan vara så att den kallas på annan tråd
             Timber.e(e)

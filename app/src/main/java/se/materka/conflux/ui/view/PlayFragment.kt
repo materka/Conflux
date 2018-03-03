@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.fragment_play.view.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentPlayBinding
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.ui.viewmodel.StationViewModel
 
 /**
@@ -47,19 +47,16 @@ class PlayFragment : DialogFragment() {
         val alertDialog = AlertDialog.Builder(activity, R.style.AppTheme_InfoDialog)
                 .setTitle(R.string.title_play)
                 .setView(binding.root)
-                .setPositiveButton(R.string.btn_save, { dialog, which -> })
+                .setPositiveButton(R.string.btn_play, { dialog, which -> })
                 .setNegativeButton(R.string.btn_cancel, { dialog, _ -> dialog?.dismiss() })
                 .create()
 
         alertDialog.setOnShowListener { dialog: DialogInterface ->
             (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                if (isValid(station.url)) {
-                    station.name = station.name ?: station.url
-                    stationViewModel?.save(station)
-                    dialog.dismiss()
+                if (binding.root.cb_save.isChecked) {
+                    saveStation()
                 } else {
-                    dialog.input_url.error = resources.getString(R.string.error_invalid_url)
-                    dialog.input_url.requestFocus()
+
                 }
             }
         }
@@ -73,6 +70,17 @@ class PlayFragment : DialogFragment() {
             (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setText(text)
         }
         return alertDialog
+    }
+
+    private fun saveStation() {
+        if (isValid(station.url)) {
+            station.name = station.name ?: station.url
+            stationViewModel?.save(station)
+            dialog.dismiss()
+        } else {
+            dialog.input_url.error = resources.getString(R.string.error_invalid_url)
+            dialog.input_url.requestFocus()
+        }
     }
 
     private fun isValid(url: String?): Boolean {

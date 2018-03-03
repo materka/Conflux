@@ -1,4 +1,4 @@
-package se.materka.conflux.db.model
+package se.materka.conflux.db.entity
 
 import android.arch.persistence.room.Entity
 import android.arch.persistence.room.PrimaryKey
@@ -21,7 +21,7 @@ import android.os.Parcelable
  * limitations under the License.
  */
 
-@Entity
+@Entity(tableName = "stations")
 class Station() : Parcelable {
     @PrimaryKey(autoGenerate = true)
     var id: Long? = null

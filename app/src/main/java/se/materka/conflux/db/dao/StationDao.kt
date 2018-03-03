@@ -1,8 +1,8 @@
-package se.materka.conflux.db.datasource
+package se.materka.conflux.db.dao
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.*
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 
 /**
  * Copyright 2017 Mattias Karlsson
@@ -21,15 +21,15 @@ import se.materka.conflux.db.model.Station
  */
 
 @Dao
-interface StationDataSource {
+interface StationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(station: Station): Long
 
-    @Query("SELECT * FROM station ORDER BY name ASC")
-    fun select(): LiveData<List<Station>>
+    @Query("SELECT * FROM stations ORDER BY name ASC")
+    fun selectAll(): LiveData<List<Station>>
 
-    @Query("SELECT * FROM station WHERE id = :arg0")
+    @Query("SELECT * FROM stations WHERE id = :arg0")
     fun select(id: Long?): LiveData<Station>
 
     @Update
@@ -38,6 +38,6 @@ interface StationDataSource {
     @Delete
     fun delete(station: Station): Int
 
-    @Query("SELECT 1 FROM station WHERE id = :arg0")
+    @Query("SELECT 1 FROM stations WHERE id = :arg0")
     fun exists(id: Long?): Int
 }

@@ -13,7 +13,7 @@ import kotlinx.android.synthetic.main.fragment_list.*
 import kotlinx.android.synthetic.main.menu_action.view.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.ui.DividerItemDecoration
 import se.materka.conflux.ui.adapter.ListAdapter
 import se.materka.conflux.ui.viewmodel.StationViewModel

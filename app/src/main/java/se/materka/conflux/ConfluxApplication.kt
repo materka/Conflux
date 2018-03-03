@@ -6,7 +6,7 @@ import com.github.salomonbrys.kotson.fromJson
 import com.google.gson.Gson
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.android.startKoin
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.db.repository.StationRepository
 import se.materka.conflux.module.BaseModule
 import se.materka.conflux.module.ListModule

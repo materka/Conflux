@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_list_item.view.*
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentListItemBinding
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 
 
 /**

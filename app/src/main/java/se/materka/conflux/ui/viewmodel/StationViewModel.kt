@@ -4,7 +4,7 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.db.repository.StationRepository
 
 
@@ -29,7 +29,7 @@ class StationViewModel(application: Application, private val repository: Station
     val selected: MutableLiveData<Station> = MutableLiveData()
 
     fun get(): LiveData<List<Station>>? {
-        return repository.read()
+        return repository.getStations()
     }
 
     fun save(station: Station): LiveData<Long> {

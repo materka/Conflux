@@ -14,10 +14,10 @@ import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentMetadataCollapsedBinding
 import se.materka.conflux.databinding.FragmentMetadataExpandedBinding
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.ui.MetadataBinding
-import se.materka.conflux.ui.viewmodel.StationViewModel
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
+import se.materka.conflux.ui.viewmodel.StationViewModel
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
 

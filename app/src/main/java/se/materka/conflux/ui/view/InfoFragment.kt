@@ -8,7 +8,7 @@ import android.support.v4.app.DialogFragment
 import android.view.LayoutInflater
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentInfoBinding
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 
 
 /**
@@ -32,7 +32,7 @@ class InfoFragment : DialogFragment() {
         val binding: FragmentInfoBinding = DataBindingUtil.inflate(LayoutInflater.from(activity), R.layout.fragment_info, null, false)
         binding.station = arguments?.getParcelable(ARG_STATION)
         return AlertDialog.Builder(activity, R.style.AppTheme_InfoDialog)
-                .setTitle("Station Information")
+                .setTitle("StationModel Information")
                 .setView(binding.root)
                 .setPositiveButton("CLOSE", { dialog, _ -> dialog?.dismiss() })
                 .create()

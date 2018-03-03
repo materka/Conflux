@@ -7,7 +7,7 @@
 
         <variable
             name="station"
-            type="se.materka.conflux.db.model.Station" />
+            type="se.materka.conflux.db.entity.Station" />
 
         <variable
             name="save"

@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.fragment_edit.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentEditBinding
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.ui.viewmodel.StationViewModel
 
 /**
@@ -45,15 +45,15 @@ class EditFragment : DialogFragment() {
         binding.station = station
 
         val alertDialog = AlertDialog.Builder(activity, R.style.AppTheme_InfoDialog)
-                .setTitle("Edit Station")
+                .setTitle("Edit StationModel")
                 .setView(binding.root)
-                .setPositiveButton("SAVE", {dialog, which ->  })
-                .setNegativeButton("CANCEL", { dialog, _ ->  dialog?.dismiss() })
+                .setPositiveButton("SAVE", { dialog, which -> })
+                .setNegativeButton("CANCEL", { dialog, _ -> dialog?.dismiss() })
                 .create()
 
         alertDialog.setOnShowListener { dialog: DialogInterface ->
             (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                if(isValid(station.url)) {
+                if (isValid(station.url)) {
                     station.name = station.name ?: station.url
                     stationViewModel?.update(station)
                     dialog.dismiss()

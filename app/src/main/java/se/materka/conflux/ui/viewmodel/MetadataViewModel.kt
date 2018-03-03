@@ -6,7 +6,7 @@ import android.arch.lifecycle.MutableLiveData
 import android.graphics.Bitmap
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import se.materka.conflux.db.model.Station
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.db.repository.StationRepository
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import timber.log.Timber

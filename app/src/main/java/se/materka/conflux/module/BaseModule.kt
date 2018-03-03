@@ -11,5 +11,5 @@ import se.materka.conflux.db.repository.StationRepositoryImpl
 
 val BaseModule = applicationContext {
     provide { StationRepositoryImpl(get()) as StationRepository }
-    provide { AppDatabase.Companion.instance(get()).stationDataSource() }
+    provide { AppDatabase.Companion.instance(get()).stationDao() }
 }
