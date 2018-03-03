@@ -52,8 +52,14 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
                 notificationIntent, 0)
         MediaSessionCompat(this@MediaBrowserService, MediaBrowserService::class.java.name).apply {
             setSessionActivity(intent)
+
+            // Set an initial PlaybackState with ACTION_PLAY, so media buttons can start the player
             setPlaybackState(stateBuilder.build())
+
+            // MediaSessionCallback has methods that handle callbacks from a media controller
             setCallback(mediaSessionCallback)
+
+            // Enable callbacks from MediaButtons and TransportControls
             setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
                     or MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS)
         }
@@ -83,6 +89,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         Player(this, PlaybackCallback())
     }
 
+    // MediaSessionCallback() has methods that handle callbacks from a media controller
     private val mediaSessionCallback: MediaSessionCompat.Callback = object : MediaSessionCompat.Callback() {
 
         override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {

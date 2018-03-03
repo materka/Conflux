@@ -44,15 +44,15 @@ object NotificationUtil {
     private fun getChannel(context: Context): String {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            // The id of the channel.
+            // The id of the channel
             val id = "conflux_channel_1"
-            // The user-visible name of the channel.
+            // The user-visible name of the channel
             val name = "Conflux"
-            // The user-visible description of the channel.
+            // The user-visible description of the channel
             val description = "Conflux Player"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(id, name, importance)
-            // Configure the notification channel.
+            // Configure the notification channel
             channel.description = description
             notificationManager.createNotificationChannel(channel)
             id
@@ -68,15 +68,31 @@ object NotificationUtil {
         return NotificationCompat.Builder(context, getChannel(context)).apply {
             color = ContextCompat.getColor(context, R.color.primary_dark)
 
+            // Add the metadata for the currently playing track
             setContentTitle(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
             setContentText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
             setSubText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
+
+            // Add an app icon
             setSmallIcon(R.drawable.md_play)
-            setOngoing(mediaSession.isActive)
+
+            // Enable launching the player by clicking the notification
             setContentIntent(controller.sessionActivity)
+
+            // Stop the service when the notification is swiped away
             setDeleteIntent(MediaButtonReceiver.buildMediaButtonPendingIntent(context.applicationContext, PlaybackStateCompat.ACTION_STOP))
+
+            // Make the transport controls visible on the lockscreen
             setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+
+            // Only Alert once with sound, ticker and vibrate when notification is shown
             setOnlyAlertOnce(true)
+
+            // Set notification to be ongoing, meaning it will be placed at the top of notifications
+            // and not affected by "Clear All"-button
+            setOngoing(mediaSession.isActive)
+
+            // Add action button, either ACTION_PLAY or ACTION_STOP, depending on media session state
             addAction(getAction(context, mediaSession))
         }
     }
