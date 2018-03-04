@@ -45,10 +45,10 @@ class EditFragment : DialogFragment() {
         binding.station = station
 
         val alertDialog = AlertDialog.Builder(activity, R.style.AppTheme_InfoDialog)
-                .setTitle("Edit StationModel")
+                .setTitle(R.string.title_edit)
                 .setView(binding.root)
-                .setPositiveButton("SAVE", { dialog, which -> })
-                .setNegativeButton("CANCEL", { dialog, _ -> dialog?.dismiss() })
+                .setPositiveButton(R.string.btn_save, { _, _ -> })
+                .setNegativeButton(R.string.btn_cancel, { dialog, _ -> dialog?.dismiss() })
                 .create()
 
         alertDialog.setOnShowListener { dialog: DialogInterface ->
