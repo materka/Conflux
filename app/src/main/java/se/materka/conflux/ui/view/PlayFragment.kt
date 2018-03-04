@@ -2,6 +2,7 @@ package se.materka.conflux.ui.view
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.DialogInterface
 import android.databinding.DataBindingUtil
 import android.os.Bundle
@@ -34,6 +35,23 @@ import se.materka.conflux.ui.viewmodel.StationViewModel
 
 class PlayFragment : DialogFragment() {
 
+    interface Listener {
+        fun play(station: Station)
+    }
+
+    companion object {
+        private val ARG_STATION = "station"
+
+        fun newInstance(station: Station): EditFragment {
+            val fragment = EditFragment()
+            val args = Bundle()
+            args.putParcelable(ARG_STATION, station)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
+    private lateinit var listener: Listener
     private val station: Station = Station()
 
     private val stationViewModel: StationViewModel? by lazy {
@@ -53,10 +71,16 @@ class PlayFragment : DialogFragment() {
 
         alertDialog.setOnShowListener { dialog: DialogInterface ->
             (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                if (binding.root.cb_save.isChecked) {
-                    saveStation()
+                if (isValid(station.url)) {
+                    station.name = station.name ?: station.url
+                    if (binding.root.cb_save.isChecked) {
+                        stationViewModel?.save(station)
+                    }
+                    listener.play(station)
+                    dialog.dismiss()
                 } else {
-
+                    dialog.input_url.error = resources.getString(R.string.error_invalid_url)
+                    dialog.input_url.requestFocus()
                 }
             }
         }
@@ -72,14 +96,12 @@ class PlayFragment : DialogFragment() {
         return alertDialog
     }
 
-    private fun saveStation() {
-        if (isValid(station.url)) {
-            station.name = station.name ?: station.url
-            stationViewModel?.save(station)
-            dialog.dismiss()
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        if (context is PlayFragment.Listener) {
+            listener = context
         } else {
-            dialog.input_url.error = resources.getString(R.string.error_invalid_url)
-            dialog.input_url.requestFocus()
+            throw RuntimeException(context!!.toString() + " must implement Listener")
         }
     }
 

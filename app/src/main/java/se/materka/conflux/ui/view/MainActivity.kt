@@ -21,6 +21,7 @@ import kotlinx.android.synthetic.main.toolbar.*
 import org.koin.android.architecture.ext.getViewModel
 import se.materka.conflux.MediaBrowserService
 import se.materka.conflux.R
+import se.materka.conflux.db.entity.Station
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
 import se.materka.conflux.ui.viewmodel.StationViewModel
 import timber.log.Timber
@@ -43,7 +44,7 @@ import java.lang.IllegalArgumentException
  * limitations under the License.
  */
 
-class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
+class MainActivity : AppCompatActivity(), MetadataFragment.Listener, PlayFragment.Listener {
 
     private val metadataViewModel: MetadataViewModel by lazy {
         getViewModel<MetadataViewModel>()
@@ -124,19 +125,8 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
             }
         })
 
-        stationViewModel.selected.observe(this, Observer
-        {
-            val uri: Uri = Uri.parse(it?.url)
-            try {
-                if (it?.url?.isEmpty() == true) throw IllegalArgumentException("URL is not set")
-                mediaController.transportControls?.playFromUri(uri, Bundle().apply { putParcelable("EXTRA_STATION", it) })
-            } catch (e: IllegalArgumentException) {
-                AlertDialog.Builder(this, R.style.AppTheme_ErrorDialog)
-                        .setTitle("Error")
-                        .setMessage(e.message)
-                        .setNegativeButton("OK") { dialog, _ -> dialog.dismiss() }
-                        .show()
-            }
+        stationViewModel.selected.observe(this, Observer {
+            play(it!!)
         })
 
         setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
@@ -165,6 +155,20 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener {
             setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
         } else {
             finish()
+        }
+    }
+
+    override fun play(station: Station) {
+        val uri: Uri = Uri.parse(station.url)
+        try {
+            if (station.url!!.isEmpty()) throw IllegalArgumentException("URL is not set")
+            mediaController.transportControls?.playFromUri(uri, Bundle().apply { putParcelable("EXTRA_STATION", station) })
+        } catch (e: IllegalArgumentException) {
+            AlertDialog.Builder(this, R.style.AppTheme_ErrorDialog)
+                    .setTitle("Error")
+                    .setMessage(e.message)
+                    .setNegativeButton("OK") { dialog, _ -> dialog.dismiss() }
+                    .show()
         }
     }
 
