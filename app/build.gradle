@@ -70,7 +70,7 @@ dependencies {
     kapt "android.arch.persistence.room:compiler:$android_arch_version"
 
     // Anko
-    implementation "org.jetbrains.anko:anko-coroutines:0.10.1"
+    implementation "org.jetbrains.anko:anko:0.10.5"
 
     kapt "com.android.databinding:compiler:$gradle_build_tools_version"
     implementation 'com.github.materka:exoplayer-shoutcast-datasource:2e1a849b87'
