@@ -28,7 +28,7 @@ class StationViewModel(application: Application, private val repository: Station
 
     val selected: MutableLiveData<Station> = MutableLiveData()
 
-    fun get(): LiveData<List<Station>>? {
+    fun getStations(): LiveData<List<Station>>? {
         return repository.getStations()
     }
 

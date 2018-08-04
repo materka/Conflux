@@ -59,9 +59,10 @@ class ListFragment : Fragment() {
             addItemDecoration(DividerItemDecoration(context, false, false))
         }
 
-        stationViewModel?.get()?.observe(this, Observer<List<Station>> { stations ->
+        stationViewModel?.getStations()?.observe(this, Observer<List<Station>> { stations ->
             if (stations != null) {
                 listAdapter.updateDataSet(stations)
+                list.visibility = View.VISIBLE
             }
         })
     }
