@@ -66,9 +66,7 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
     private var audioSource: MediaSource? = null
     private var audioState: Int = PlaybackStateCompat.STATE_NONE
     private var playOnFocusGain: Boolean = false
-    private val playlist by lazy {
-        Stack<Uri>()
-    }
+    private val playlist: Stack<Uri> = Stack()
 
     private val dataSourceFactory: ShoutcastDataSourceFactory by lazy {
         ShoutcastDataSourceFactory(
@@ -90,23 +88,15 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
 
     private val audioFocusManager: AudioFocusManager = AudioFocusManager(mediaBrowser, { onAudioFocusChanged() })
 
-    private val playerListener: com.google.android.exoplayer2.Player.EventListener = object : com.google.android.exoplayer2.Player.EventListener {
+    private val playerListener: com.google.android.exoplayer2.Player.EventListener = object: com.google.android.exoplayer2.Player.EventListener {
 
         override fun onPlayerError(error: ExoPlaybackException?) {
             Timber.e(error)
             if (!playlist.isEmpty()) {
                 play(playlist.pop())
-            } else {
-                callback.onError(PlaybackStateCompat.STATE_ERROR, "No working URLs found")
+                return
             }
-            if (error?.sourceException is HttpDataSource.InvalidResponseCodeException) {
-                val responseCode = (error.sourceException as HttpDataSource.InvalidResponseCodeException).responseCode
-                when (responseCode) {
-                    404 -> {
-                        callback.onError(PlaybackStateCompat.STATE_ERROR, "Url not found")
-                    }
-                }
-            }
+            callback.onError(PlaybackStateCompat.STATE_ERROR, "Could not play provided station")
         }
 
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
@@ -206,28 +196,25 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
     }
 
     fun play(uri: Uri? = currentUri) {
+        playlist.clear()
         if (player.playWhenReady) {
             stop()
         }
 
         audioFocusManager.requestAudioFocus().let {
-            if (it == AudioManager.AUDIOFOCUS_GAIN) {
-                uri?.let {
-                    if (it != Uri.EMPTY) {
-                        currentUri = it
-                        if (playlist.isEmpty() && PlaylistUtil.isPlayList(it)) {
-                            async(CommonPool) {
-                                PlaylistUtil.getPlaylist(it).let { list ->
-                                    if (!list.isEmpty()) {
-                                        playlist.addAll(list)
-                                        playUri(playlist.pop())
-                                    }
-                                }
+            if (it == AudioManager.AUDIOFOCUS_GAIN && uri != null && uri != Uri.EMPTY) {
+                currentUri = uri
+                if (playlist.isEmpty() && PlaylistUtil.isPlayList(uri)) {
+                    async(CommonPool) {
+                        PlaylistUtil.getPlaylist(uri).let { list ->
+                            if (!list.isEmpty()) {
+                                playlist.addAll(list)
+                                playUri(playlist.pop())
                             }
-                        } else {
-                            playUri(it)
                         }
                     }
+                } else {
+                    playUri(uri)
                 }
             }
         }
