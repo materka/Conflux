@@ -1,22 +1,22 @@
 package se.materka.conflux.ui.view
 
-import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
-import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
 import android.util.Patterns
 import android.view.LayoutInflater
+import androidx.appcompat.app.AlertDialog
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.DialogFragment
 import kotlinx.android.synthetic.main.fragment_edit.*
-import org.koin.android.architecture.ext.getViewModel
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentEditBinding
 import se.materka.conflux.db.entity.Station
 import se.materka.conflux.ui.viewmodel.StationViewModel
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,11 +44,11 @@ class EditFragment : DialogFragment() {
         val binding: FragmentEditBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.fragment_edit, null, false)
         binding.station = station
 
-        val alertDialog = AlertDialog.Builder(activity, R.style.AppTheme_InfoDialog)
+        val alertDialog = AlertDialog.Builder(requireContext())
                 .setTitle(R.string.title_edit)
                 .setView(binding.root)
-                .setPositiveButton(R.string.btn_save, { _, _ -> })
-                .setNegativeButton(R.string.btn_cancel, { dialog, _ -> dialog?.dismiss() })
+                .setPositiveButton(R.string.btn_save) { _, _ -> }
+                .setNegativeButton(R.string.btn_cancel) { dialog, _ -> dialog?.dismiss() }
                 .create()
 
         alertDialog.setOnShowListener { dialog: DialogInterface ->

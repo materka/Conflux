@@ -4,12 +4,23 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.View
+import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
-class DividerItemDecoration(context: Context, private val showFirstDivider: Boolean = false,
-                            private val showLastDivider: Boolean = false, divider: Drawable? = null) : RecyclerView.ItemDecoration() {
+class DividerItemDecoration(context: Context,
+                            private val showFirstDivider: Boolean = false,
+                            private val showLastDivider: Boolean = false,
+                            divider: Drawable? = null,
+                            private val sectionCallback: SectionCallback,
+                            private val sticky: Boolean = true) : RecyclerView.ItemDecoration() {
+
+    interface SectionCallback {
+
+        fun isSection(position: Int): Boolean
+    }
+
     private val divider: Drawable
 
     init {
@@ -23,24 +34,67 @@ class DividerItemDecoration(context: Context, private val showFirstDivider: Bool
     }
 
     override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView,
-                                state: RecyclerView.State?) {
+                                state: RecyclerView.State) {
         super.getItemOffsets(outRect, view, parent, state)
-        if (parent.getChildAdapterPosition(view) < 1) {
-            return
-        }
+        val pos = parent.getChildAdapterPosition(view)
 
-        if (getOrientation(parent) == LinearLayoutManager.VERTICAL) {
-            outRect.top = divider.intrinsicHeight
-        } else {
-            outRect.left = divider.intrinsicWidth
+        when {
+            pos < 1 -> return
+            sectionCallback.isSection(pos) -> outRect.top = 30
+            getOrientation(parent) == LinearLayoutManager.VERTICAL -> outRect.top = divider.intrinsicHeight
+            else -> outRect.left = divider.intrinsicWidth
         }
     }
 
-    override fun onDraw(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State?) {
+    override fun onDraw(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         when (getOrientation(parent)) {
             LinearLayoutManager.VERTICAL -> drawVertical(canvas, parent)
             LinearLayoutManager.HORIZONTAL -> drawHorizontal(canvas, parent)
         }
+    }
+
+    override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
+        super.onDrawOver(c, parent, state)
+
+        for (i in 0 until parent.childCount) {
+            val child = parent.getChildAt(i)
+            val position = parent.getChildAdapterPosition(child)
+
+            if (sectionCallback.isSection(position)) {
+                drawHeader(c, child, child)
+
+            }
+        }
+    }
+
+    private fun drawHeader(c: Canvas, child: View, headerView: View) {
+        c.save()
+        val dy = if (sticky) {
+            Math.max(0, (child.top - headerView.height))
+        } else {
+            child.top - headerView.height
+        }
+        c.translate(0F, dy.toFloat())
+        headerView.draw(c)
+        c.restore()
+    }
+
+    private fun fixLayoutSize(view: View, parent: ViewGroup) {
+        val widthSpec = View.MeasureSpec.makeMeasureSpec(parent.width,
+                View.MeasureSpec.EXACTLY)
+        val heightSpec = View.MeasureSpec.makeMeasureSpec(parent.height,
+                View.MeasureSpec.UNSPECIFIED)
+
+        val childWidth = ViewGroup.getChildMeasureSpec(widthSpec,
+                parent.paddingLeft + parent.paddingRight,
+                view.layoutParams.width)
+        val childHeight = ViewGroup.getChildMeasureSpec(heightSpec,
+                parent.paddingTop + parent.paddingBottom,
+                view.layoutParams.height)
+
+        view.measure(childWidth, childHeight)
+
+        view.layout(0, 0, view.measuredWidth, view.measuredHeight)
     }
 
     private fun drawVertical(canvas: Canvas, parent: RecyclerView) {

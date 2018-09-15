@@ -1,15 +1,11 @@
 package se.materka.conflux.ui
 
 import android.content.Context
-import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.util.AttributeSet
 import android.widget.ImageButton
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import se.materka.conflux.R
 
-
-/**
- * Created by Privat on 7/1/2017.
- */
 class AnimatedPlayButton : ImageButton {
 
     private val playToPauseAnim: AnimatedVectorDrawableCompat? by lazy {

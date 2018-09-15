@@ -1,15 +1,16 @@
 package se.materka.conflux
 
 import android.net.Uri
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import timber.log.Timber
+import se.materka.TAG
 import java.io.IOException
 import java.io.InputStream
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +27,16 @@ import java.io.InputStream
 
 object PlaylistUtil {
 
-    private val M3U: String = "m3u"
-    private val M3U8: String = "m3u8"
-    private val PLS: String = "pls"
-    private val HTTP: String = "http"
-    private val HTTPS: String = "https"
+    enum class PlaylistType(val format: String) {
+        M3U("m3u"),
+        M3U8("m3u8"),
+        PLS("pls")
+    }
 
-    suspend fun getPlaylist(uri: Uri): MutableList<Uri> {
+    private const val HTTP: String = "http"
+    private const val HTTPS: String = "https"
+
+    fun getPlaylist(uri: Uri): MutableList<Uri> {
         val playlist: MutableList<Uri> = mutableListOf()
 
         if (!isPlayList(uri)) return playlist
@@ -46,16 +50,16 @@ object PlaylistUtil {
             val inputStream: InputStream? = response.body()?.byteStream()
             inputStream?.use { stream ->
                 stream.apply {
-                    bufferedReader().use {
-                        it.readLines().forEach { line ->
-                            line.trim().let {
-                                if (uri.path.endsWith(PLS, true)) {
-                                    if (it.contains(HTTP, true)) {
-                                        playlist.add(Uri.parse(it.substring(it.indexOf(HTTP, 0, true))))
+                    bufferedReader().use { reader ->
+                        reader.readLines().forEach { line ->
+                            line.trim().run {
+                                if (uri.path.endsWith(PlaylistType.PLS.format, true)) {
+                                    if (contains(HTTP, true)) {
+                                        playlist.add(Uri.parse(substring(indexOf(HTTP, 0, true))))
                                     }
-                                } else if (uri.path.endsWith(M3U, true) || uri.path.endsWith(M3U8, true)) {
-                                    if (it.isNotEmpty() && it[0] != '#' && it[0] != '<') {
-                                        playlist.add(Uri.parse(it))
+                                } else if (uri.path.endsWith(PlaylistType.M3U.format, true) || uri.path.endsWith(PlaylistType.M3U8.format, true)) {
+                                    if (isNotEmpty() && this[0] != '#' && this[0] != '<') {
+                                        playlist.add(Uri.parse(this))
                                     }
                                 }
 
@@ -65,7 +69,7 @@ object PlaylistUtil {
                 }
             }
         } catch (e: IOException) {
-            Timber.e(e, "Playlist parser failed")
+            Log.e(TAG, "Playlist parser failed")
         } finally {
             response?.close()
         }
@@ -75,8 +79,8 @@ object PlaylistUtil {
 
     fun isPlayList(uri: Uri): Boolean {
         return (arrayOf(HTTP, HTTPS).contains(uri.scheme) &&
-                uri.path.endsWith(PLS, true) ||
-                uri.path.endsWith(M3U, true) ||
-                uri.path.endsWith(M3U8, true))
+                uri.path.endsWith(PlaylistType.PLS.format, true) ||
+                uri.path.endsWith(PlaylistType.M3U.format, true) ||
+                uri.path.endsWith(PlaylistType.M3U8.format, true))
     }
 }

@@ -1,36 +1,34 @@
 package se.materka.conflux.ui.view
 
-import android.arch.lifecycle.Observer
-import android.content.ComponentName
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioManager
-import android.net.Uri
 import android.os.Bundle
-import android.support.design.widget.AppBarLayout
-import android.support.design.widget.BottomSheetBehavior
-import android.support.design.widget.Snackbar
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
+import android.view.Menu
+import android.view.MenuItem
+import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.mikepenz.iconics.context.IconicsContextWrapper
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.toolbar.*
-import org.koin.android.architecture.ext.getViewModel
-import se.materka.conflux.MediaBrowserService
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.db.entity.Station
+import se.materka.conflux.ui.DividerItemDecoration
+import se.materka.conflux.ui.adapter.ListAdapter
+import se.materka.conflux.ui.viewmodel.MainActivityViewModel
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
-import se.materka.conflux.ui.viewmodel.StationViewModel
-import timber.log.Timber
-import java.lang.IllegalArgumentException
-
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,102 +43,111 @@ import java.lang.IllegalArgumentException
  * limitations under the License.
  */
 
-class MainActivity : AppCompatActivity(), MetadataFragment.Listener, PlayFragment.Listener {
+class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUrlFragment.PlayUrlDialogListener {
+
+    private lateinit var listAdapter: ListAdapter
 
     private val metadataViewModel: MetadataViewModel by lazy {
         getViewModel<MetadataViewModel>()
     }
 
-    private val stationViewModel: StationViewModel by lazy {
-        getViewModel<StationViewModel>()
-    }
-
-    private val mediaBrowser: MediaBrowserCompat by lazy {
-        MediaBrowserCompat(this,
-                ComponentName(this, MediaBrowserService::class.java),
-                connectionCallback,
-                null)
-    }
-
-    private val mediaController: MediaControllerCompat by lazy {
-        MediaControllerCompat(this@MainActivity, mediaBrowser.sessionToken)
-    }
-
-    val mediaControllerCallback: MediaControllerCompat.Callback = object : MediaControllerCompat.Callback() {
-
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            metadataViewModel.onMetadataChanged(metadata, stationViewModel.selected.value)
-        }
-
-        override fun onPlaybackStateChanged(playbackState: PlaybackStateCompat?) {
-            val bottomSheetState: Int = if (playbackState?.state == PlaybackStateCompat.STATE_PLAYING) {
-                BottomSheetBehavior.STATE_COLLAPSED
-            } else {
-                BottomSheetBehavior.STATE_HIDDEN
-            }
-            setBottomSheetState(bottomSheetState)
-            metadataViewModel.onPlaybackStateChanged(playbackState)
-
-            if (playbackState?.state == PlaybackStateCompat.STATE_ERROR) {
-                Snackbar.make(coordinator, playbackState?.errorMessage, Snackbar.LENGTH_LONG).show()
-            }
-        }
-    }
-
-
-    private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {
-        override fun onConnected() {
-            // Create a MediaControllerCompat
-            MediaControllerCompat.setMediaController(this@MainActivity, mediaController)
-            mediaController.registerCallback(mediaControllerCallback)
-        }
-
-        override fun onConnectionSuspended() {
-            mediaController.unregisterCallback(mediaControllerCallback)
-        }
-
-        override fun onConnectionFailed() {
-            Timber.e("connection failed")
-        }
+    private val mainActivityViewModel: MainActivityViewModel by lazy {
+        getViewModel<MainActivityViewModel>()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        volumeControlStream = AudioManager.STREAM_MUSIC
         setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar as Toolbar)
+        //setSupportActionBar(toolbar as Toolbar)
 
-        btn_play.setOnClickListener { showPlayDialog() }
+        listAdapter = ListAdapter({ item -> itemClicked(item) },
+                { item -> itemLongClicked(item) })
 
-        btn_toggle_play.showPlay()
+        list.apply {
+            layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+            adapter = listAdapter
+            addItemDecoration(DividerItemDecoration(context, false, false, null, getSectionCallback()))
+        }
 
         metadataViewModel.isPlaying.observe(this, Observer { playing ->
             if (playing == true) {
                 setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
-                btn_toggle_play.apply {
-                    showPause()
-                    setOnClickListener { mediaController.transportControls?.stop() }
-                }
             } else {
                 setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
-                btn_toggle_play.apply {
-                    showPlay()
-                    setOnClickListener { mediaController.transportControls?.play() }
-                }
             }
         })
 
-        stationViewModel.selected.observe(this, Observer {
-            play(it!!)
+        mainActivityViewModel.items.observe(this, Observer { items ->
+            if (items != null && !items.isEmpty()) {
+                listAdapter.updateDataSet(items)
+            }
         })
 
         setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
+
+        newStation.setOnClickListener {
+            showPlayDialog()
+        }
     }
 
-    override fun onResume() {
+    public override fun onResume() {
         super.onResume()
-        if (!mediaBrowser.isConnected) {
-            mediaBrowser.connect()
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.INTERNET)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Permission is not granted
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.INTERNET)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.INTERNET),
+                        1)
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        } else {
+            // Permission has already been granted
+        }
+
+        volumeControlStream = AudioManager.STREAM_MUSIC
+    }
+
+    private fun getSectionCallback(): DividerItemDecoration.SectionCallback {
+        return object : DividerItemDecoration.SectionCallback {
+            override fun isSection(position: Int): Boolean {
+                return position == 0 || listAdapter.items[position] != listAdapter.items[position - 1]
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            1 -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                } else {
+
+                }
+                return
+            }
+
+            // Add other 'when' lines to check for other
+            // permissions this app might request.
+            else -> {
+                // Ignore all other requests.
+            }
         }
     }
 
@@ -148,11 +155,31 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener, PlayFragmen
         super.attachBaseContext(IconicsContextWrapper.wrap(newBase))
     }
 
-    override fun onViewStateChanged(state: MetadataFragment.Companion.ViewState) {
-        when (state) {
-            MetadataFragment.Companion.ViewState.COLLAPSED -> setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
-            MetadataFragment.Companion.ViewState.EXPANDED -> setBottomSheetState(BottomSheetBehavior.STATE_EXPANDED)
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem.actionView as SearchView
+        searchView.setOnQueryTextListener(this)
+        searchView.setOnQueryTextFocusChangeListener { v, hasFocus ->
+            if (!hasFocus) {
+                (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).also { manager ->
+                    manager.hideSoftInputFromWindow(v.windowToken, 0)
+                }
+            }
         }
+
+        return true
+    }
+
+    override fun onQueryTextChange(query: String): Boolean {
+        listAdapter.filter.filter(query)
+        return false
+    }
+
+    override fun onQueryTextSubmit(query: String): Boolean {
+        listAdapter.filter.filter(query)
+        return false
     }
 
     override fun onBackPressed() {
@@ -163,22 +190,23 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener, PlayFragmen
         }
     }
 
-    override fun play(station: Station) {
-        val uri: Uri = Uri.parse(station.url)
-        try {
-            if (station.url!!.isEmpty()) throw IllegalArgumentException("URL is not set")
-            mediaController.transportControls?.playFromUri(uri, Bundle().apply { putParcelable("EXTRA_STATION", station) })
-        } catch (e: IllegalArgumentException) {
-            AlertDialog.Builder(this, R.style.AppTheme_ErrorDialog)
-                    .setTitle("Error")
-                    .setMessage(e.message)
-                    .setNegativeButton("OK") { dialog, _ -> dialog.dismiss() }
-                    .show()
+    override fun onDialogFinished(resultCode: Int?, result: Bundle) {
+        when(resultCode) {
+            PLAY_URL_RESULT_CODE -> {
+                result.getString(PlayUrlFragment.RESULT_URI)?.let { uri ->
+                    mainActivityViewModel.select(uri.toUri())
+                    if (result.getBoolean(PlayUrlFragment.RESULT_SAVE)) {
+                        mainActivityViewModel.saveUri(uri.toUri(), result.getString(PlayUrlFragment.RESULT_NAME, uri))
+                    }
+                }
+            }
         }
     }
 
     private fun showPlayDialog() {
-        PlayFragment().show(supportFragmentManager, "PlayFragment")
+        PlayUrlFragment
+                .newInstance(PLAY_URL_RESULT_CODE)
+                .show(supportFragmentManager, "PlayUrlFragment")
     }
 
     private fun setBottomSheetState(state: Int) {
@@ -186,11 +214,57 @@ class MainActivity : AppCompatActivity(), MetadataFragment.Listener, PlayFragmen
             BottomSheetBehavior.from(metadata.view).let {
                 if (it.state != state) {
                     it.state = state
-                    (toolbar.parent as AppBarLayout).setExpanded(state != BottomSheetBehavior.STATE_EXPANDED, true)
-
+                    //(toolbar.parent as AppBarLayout).setExpanded(state != BottomSheetBehavior.STATE_EXPANDED, true)
                 }
             }
         }
     }
-}
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val id = item.itemId
+        return if (id == R.id.action_search) {
+            true
+        } else super.onOptionsItemSelected(item)
+
+    }
+
+    private fun itemClicked(item: MediaBrowserCompat.MediaItem) {
+        mainActivityViewModel.select(item)
+    }
+
+    private fun itemLongClicked(item: MediaBrowserCompat.MediaItem) {
+        /*val actionView = LayoutInflater.from(this).inflate(R.layout.menu_action, null, false)
+        val actionDialog = BottomSheetDialog(this)
+
+        actionView.info.setOnClickListener {
+            InfoFragment.newInstance(station).show(supportFragmentManager, "InfoFragment")
+            actionDialog.dismiss()
+        }
+
+        actionView.edit.setOnClickListener {
+            EditFragment.newInstance(station).show(supportFragmentManager, "EditFragment")
+            actionDialog.dismiss()
+        }
+
+        actionView.delete.setOnClickListener {
+            AlertDialog.Builder(this, R.style.AppTheme_WarningDialog)
+                    .setTitle("Remove")
+                    .setMessage("Are you sure you want to remove this station?")
+                    .setPositiveButton("REMOVE") { _, _ ->
+                        stationViewModel?.delete(station)
+                    }
+                    .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
+                    .show()
+            actionDialog.dismiss()
+        }
+
+        actionDialog.apply {
+            setContentView(actionView)
+            show()
+        }*/
+    }
+
+    companion object {
+        private const val PLAY_URL_RESULT_CODE = 1
+    }
+}

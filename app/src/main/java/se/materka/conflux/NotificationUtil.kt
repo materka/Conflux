@@ -6,18 +6,18 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import android.support.v4.app.NotificationCompat
-import android.support.v4.content.ContextCompat
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import androidx.media.session.MediaButtonReceiver
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ object NotificationUtil {
             // The user-visible name of the channel
             val name = "Conflux"
             // The user-visible description of the channel
-            val description = "Conflux Player"
+            val description = "Conflux RadioPlayer"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(id, name, importance)
             // Configure the notification channel
@@ -112,8 +112,8 @@ object NotificationUtil {
             )
     }
 
-    private fun getMediaStyle(context: Context, mediaSession: MediaSessionCompat): android.support.v4.media.app.NotificationCompat.MediaStyle {
-        return android.support.v4.media.app.NotificationCompat.MediaStyle()
+    private fun getMediaStyle(context: Context, mediaSession: MediaSessionCompat): androidx.media.app.NotificationCompat.MediaStyle {
+        return androidx.media.app.NotificationCompat.MediaStyle()
                 .setMediaSession(mediaSession.sessionToken)
                 .setShowActionsInCompactView(0)
                 .setShowCancelButton(!mediaSession.isActive)

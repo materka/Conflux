@@ -1,15 +1,15 @@
 package se.materka.conflux.db
 
-import android.arch.persistence.room.Database
-import android.arch.persistence.room.Room
-import android.arch.persistence.room.RoomDatabase
 import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import se.materka.conflux.R
 import se.materka.conflux.db.dao.StationDao
 import se.materka.conflux.db.entity.Station
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

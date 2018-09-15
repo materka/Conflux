@@ -1,11 +1,11 @@
 package se.materka.conflux.db.dao
 
-import android.arch.lifecycle.LiveData
-import android.arch.persistence.room.*
+import androidx.lifecycle.LiveData
+import androidx.room.*
 import se.materka.conflux.db.entity.Station
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ interface StationDao {
     @Query("SELECT * FROM stations ORDER BY name ASC")
     fun selectAll(): LiveData<List<Station>>
 
-    @Query("SELECT * FROM stations WHERE id = :arg0")
+    @Query("SELECT * FROM stations WHERE id = :id")
     fun select(id: Long?): LiveData<Station>
 
     @Update
@@ -38,6 +38,6 @@ interface StationDao {
     @Delete
     fun delete(station: Station): Int
 
-    @Query("SELECT 1 FROM stations WHERE id = :arg0")
+    @Query("SELECT 1 FROM stations WHERE id = :id")
     fun exists(id: Long?): Int
 }

@@ -6,9 +6,10 @@ import android.media.AudioManager
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.PowerManager
-import android.support.v4.media.MediaBrowserServiceCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.media.MediaBrowserServiceCompat
 import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.Player.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
@@ -16,21 +17,18 @@ import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray
-import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.util.Util
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import se.materka.exoplayershoutcastdatasource.ShoutcastDataSourceFactory
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadataListener
-import timber.log.Timber
 import java.io.IOException
 import java.util.*
 
 @SuppressLint("WifiManagerPotentialLeak")
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,14 +43,14 @@ import java.util.*
  * limitations under the License.
  */
 
-class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Callback) : ShoutcastMetadataListener {
+class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback: Callback) : ShoutcastMetadataListener {
 
     companion object {
         // The volume we set the media player to when we lose audio focus, but are
         // allowed to reduce the volume instead of stopping playback.
-        private val VOLUME_DUCK = 0.2f
+        private const val VOLUME_DUCK = 0.2f
         // The volume we set the media player when we have audio focus.
-        private val VOLUME_NORMAL = 1.0f
+        private const val VOLUME_NORMAL = 1.0f
     }
 
     interface Callback {
@@ -83,15 +81,15 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
         // playing. If we don't do that, the CPU might go to sleep while the
         // song is playing, causing playback to stop.
         (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
-                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "confluxWakeLock")
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "conflux:WakeLock")
     }
 
-    private val audioFocusManager: AudioFocusManager = AudioFocusManager(mediaBrowser, { onAudioFocusChanged() })
+    private val audioFocusManager: AudioFocusManager = AudioFocusManager.newInstance(mediaBrowser) { audioFocus ->  onAudioFocusChanged(audioFocus) }
 
-    private val playerListener: com.google.android.exoplayer2.Player.EventListener = object: com.google.android.exoplayer2.Player.EventListener {
+    private val playerListener: com.google.android.exoplayer2.Player.EventListener = object : com.google.android.exoplayer2.Player.EventListener {
 
         override fun onPlayerError(error: ExoPlaybackException?) {
-            Timber.e(error)
+            // TODO: Log error
             if (!playlist.isEmpty()) {
                 play(playlist.pop())
                 return
@@ -101,20 +99,20 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
 
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
             when (playbackState) {
-                com.google.android.exoplayer2.Player.STATE_BUFFERING -> {
-                    Timber.i("PlaybackState: Buffering")
+                STATE_BUFFERING -> {
+                    // TODO : info("PlaybackState: Buffering")
                     audioState = PlaybackStateCompat.STATE_BUFFERING
                 }
-                com.google.android.exoplayer2.Player.STATE_ENDED -> {
-                    Timber.i("PlaybackState: Ended")
+                STATE_ENDED -> {
+                    // TODO : info("PlaybackState: Ended")
                     audioState = PlaybackStateCompat.STATE_STOPPED
                 }
-                com.google.android.exoplayer2.Player.STATE_IDLE -> {
-                    Timber.i("PlaybackState: Idle")
+                STATE_IDLE -> {
+                    // TODO : info("PlaybackState: Idle")
                     audioState = PlaybackStateCompat.STATE_NONE
                 }
-                com.google.android.exoplayer2.Player.STATE_READY -> {
-                    Timber.i("PlaybackState: Ready")
+                STATE_READY -> {
+                    // TODO : info("PlaybackState: Ready")
                     audioState = if (playWhenReady) {
                         PlaybackStateCompat.STATE_PLAYING
                     } else {
@@ -127,27 +125,35 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
         }
 
         override fun onLoadingChanged(isLoading: Boolean) {
-            Timber.d("Loading: $isLoading")
-        }
-
-        override fun onPositionDiscontinuity() {
-            Timber.d("onPositionDiscontinuity: discontinuity detected")
+            // TODO : debug("Loading: $isLoading")
         }
 
         override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
-            Timber.d("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
+            // TODO : debug("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
         }
 
         override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-            Timber.d("onTracksChanged")
+            // TODO : debug("onTracksChanged")
         }
 
         override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-            Timber.d("onPlaybackParameterChanged")
+            // TODO : debug("onPlaybackParameterChanged")
         }
 
         override fun onRepeatModeChanged(repeatMode: Int) {
-            Timber.d("onRepeatModeChanged")
+            // TODO : debug("onRepeatModeChanged")
+        }
+
+        override fun onSeekProcessed() {
+            // TODO : debug("onSeekProcessed")
+        }
+
+        override fun onPositionDiscontinuity(reason: Int) {
+            // TODO : debug("onPositionDiscontinuity")
+        }
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            // TODO : debug("onShuffleModeEnabledChanged")
         }
     }
 
@@ -163,13 +169,13 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
     }
 
     override fun onMetadataReceived(data: ShoutcastMetadata) {
-        Timber.i("Metadata Received")
+        // TODO : info("Metadata Received")
         callback.onMetadataReceived(data)
     }
 
     fun stop(releasePlayer: Boolean = false) {
         if (player.playWhenReady) {
-            Timber.i("Stopping playback")
+            // TODO : info("Stopping playback")
 
             // Give up Audio focus
             audioFocusManager.abandonAudioFocus()
@@ -205,7 +211,7 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
             if (it == AudioManager.AUDIOFOCUS_GAIN && uri != null && uri != Uri.EMPTY) {
                 currentUri = uri
                 if (playlist.isEmpty() && PlaylistUtil.isPlayList(uri)) {
-                    async(CommonPool) {
+                    launch {
                         PlaylistUtil.getPlaylist(uri).let { list ->
                             if (!list.isEmpty()) {
                                 playlist.addAll(list)
@@ -220,8 +226,8 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
         }
     }
 
-    private fun onAudioFocusChanged() {
-        when (audioFocusManager.audioFocus) {
+    private fun onAudioFocusChanged(audioFocus: Int) {
+        when (audioFocus) {
             AudioManager.AUDIOFOCUS_GAIN -> {
                 player.volume = VOLUME_NORMAL
                 if (playOnFocusGain) {
@@ -248,8 +254,7 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
     private fun playUri(uri: Uri) {
         try {
             // This is the MediaSource representing the media to be played.
-            audioSource = ExtractorMediaSource(uri,
-                    dataSourceFactory, DefaultExtractorsFactory(), null, null)
+            audioSource = ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri)
             player.prepare(audioSource)
             player.playWhenReady = true
 
@@ -263,8 +268,9 @@ class Player(mediaBrowser: MediaBrowserServiceCompat, private val callback: Call
             callback.onPlaybackStateChanged(PlaybackStateCompat.STATE_BUFFERING)
 
         } catch (e: IOException) {
-            callback.onError(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, e.message ?: "Unknown error")
-            Timber.e(e)
+            // TODO : error("Playing URL", e)
+            callback.onError(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, e.message
+                    ?: "Unknown error")
         }
     }
 }

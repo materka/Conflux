@@ -1,8 +1,8 @@
 package se.materka.conflux.db.repository
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
-import org.jetbrains.anko.coroutines.experimental.bg
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.experimental.launch
 import se.materka.conflux.db.dao.StationDao
 import se.materka.conflux.db.entity.Station
 
@@ -24,7 +24,7 @@ class StationRepositoryImpl(private val dao: StationDao) : StationRepository {
 
     override fun create(station: Station): MutableLiveData<Long> {
         val id: MutableLiveData<Long> = MutableLiveData()
-        bg {
+        launch {
             id.postValue(dao.insert(station))
         }
         return id
@@ -40,7 +40,7 @@ class StationRepositoryImpl(private val dao: StationDao) : StationRepository {
 
     override fun update(station: Station): LiveData<Boolean> {
         val updated: MutableLiveData<Boolean> = MutableLiveData()
-        bg {
+        launch {
             updated.postValue(dao.update(station) > 0)
         }
         return updated
@@ -48,7 +48,7 @@ class StationRepositoryImpl(private val dao: StationDao) : StationRepository {
 
     override fun delete(station: Station): LiveData<Boolean> {
         val deleted = MutableLiveData<Boolean>()
-        bg {
+        launch {
             deleted.postValue(dao.delete(station) == 1)
         }
         return deleted
@@ -56,7 +56,7 @@ class StationRepositoryImpl(private val dao: StationDao) : StationRepository {
 
     override fun exists(station: Station): LiveData<Boolean> {
         val exists = MutableLiveData<Boolean>()
-        bg {
+        launch {
             exists.postValue(dao.exists(station.id) == 1)
         }
         return exists

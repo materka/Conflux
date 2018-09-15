@@ -4,8 +4,8 @@
     <data>
 
         <variable
-            name="station"
-            type="se.materka.conflux.db.entity.Station" />
+            name="item"
+            type="android.support.v4.media.MediaBrowserCompat.MediaItem" />
     </data>
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -42,14 +42,14 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:text="@{station.name}"
+                android:text="@{item.description.title}"
                 android:textAllCaps="true"
                 android:textSize="16sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="@{station.bitrate.toString()}"
+                android:text="@{}"
                 android:textSize="12sp" />
 
             <TextView
@@ -57,7 +57,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginStart="2dp"
                 android:gravity="end"
-                android:text="@{station.format}"
+                android:text="@{}"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -68,7 +68,7 @@
             android:layout_toEndOf="@id/selected"
             android:ellipsize="end"
             android:singleLine="true"
-            android:text="@{station.url}"
+            android:text="@{item.description.mediaUri.toString()}"
             android:textAllCaps="true"
             android:textColor="@color/secondary_text"
             android:textSize="12sp" />

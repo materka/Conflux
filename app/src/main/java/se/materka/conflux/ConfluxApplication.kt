@@ -10,8 +10,6 @@ import se.materka.conflux.db.entity.Station
 import se.materka.conflux.db.repository.StationRepository
 import se.materka.conflux.module.BaseModule
 import se.materka.conflux.module.ListModule
-import se.materka.conflux.module.MetadataModule
-import timber.log.Timber
 
 class ConfluxApplication : Application() {
 
@@ -20,16 +18,17 @@ class ConfluxApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        startKoin(this, listOf(BaseModule, ListModule, MetadataModule))
+        startKoin(this, listOf(BaseModule, ListModule))
 
         if (BuildConfig.DEBUG) {
             Stetho.initializeWithDefaults(this)
             deleteDatabase("conflux")
-            Timber.plant(Timber.DebugTree())
 
             val content = assets.open("stations.json").reader().readText()
             val stations: List<Station> = Gson().fromJson(content)
             stations.forEach { stationRepository.create(it) }
         }
     }
+
+
 }

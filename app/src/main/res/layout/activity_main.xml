@@ -1,98 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/coordinator"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.view.MainActivity">
 
-    <android.support.design.widget.CoordinatorLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/coordinator"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/actions"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:context=".ui.view.MainActivity">
-
-        <android.support.v4.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-            <fragment
-                android:id="@+id/list_fragment"
-                android:name="se.materka.conflux.ui.view.ListFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </android.support.v4.widget.NestedScrollView>
-
-        <include
-            layout="@layout/toolbar"
-            app:layout_insetEdge="top" />
-
-        <fragment
-            android:id="@+id/metadata"
-            android:name="se.materka.conflux.ui.view.MetadataFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:behavior_hideable="true"
-            app:behavior_peekHeight="120dp"
-            app:layout_behavior="se.materka.conflux.ui.LockedBottomSheetBehavior" />
-    </android.support.design.widget.CoordinatorLayout>
-
-    <LinearLayout
-        android:id="@+id/actions"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/accent"
-        android:orientation="horizontal"
-        android:paddingEnd="16dp"
-        android:paddingStart="16dp"
-        android:weightSum="3"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:layout_height="match_parent">
 
-        <ImageButton
-            android:id="@+id/btn_play"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            app:ico_icon="cmd-plus"
-            app:ico_size="24dp"
-            app:ico_color="@android:color/white"
-            tools:ignore="MissingPrefix" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/primary"
+            android:nestedScrollingEnabled="false" />
 
-        <View
-            android:layout_width="2dp"
-            android:layout_height="fill_parent"
-            android:background="@color/accent_shadow" />
+    </androidx.core.widget.NestedScrollView>
 
-        <se.materka.conflux.ui.AnimatedPlayButton
-            android:id="@+id/btn_toggle_play"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent" />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/newStation"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        app:layout_anchor="@id/metadata"
+        app:layout_anchorGravity="top|right"
+        app:layout_behavior=".ui.FloatingActionButtonBehavior" />
 
-        <View
-            android:layout_width="2dp"
-            android:layout_height="fill_parent"
-            android:background="@color/accent_shadow" />
-
-        <ImageButton
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:scaleType="centerInside"
-            app:ico_icon="cmd-heart-outline"
-            app:ico_size="24dp"
-            app:ico_color="@android:color/white"
-            tools:ignore="MissingPrefix" />
-
-    </LinearLayout>
-
-</android.support.constraint.ConstraintLayout>
+    <fragment
+        android:id="@+id/metadata"
+        android:name="se.materka.conflux.ui.view.MetadataFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:behavior_hideable="true"
+        app:behavior_peekHeight="60dp"
+        app:layout_behavior=".ui.StaticBottomSheetBehavior" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

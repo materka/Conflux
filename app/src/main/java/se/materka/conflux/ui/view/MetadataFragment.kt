@@ -1,28 +1,23 @@
 package se.materka.conflux.ui.view
 
-import android.arch.lifecycle.Observer
-import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.media.MediaMetadataCompat
-import android.transition.Scene
-import android.transition.TransitionManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import org.koin.android.architecture.ext.getViewModel
+import android.widget.Toast
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.transition.Scene
+import androidx.transition.TransitionManager
+import kotlinx.android.synthetic.main.fragment_metadata.view.*
+import org.koin.androidx.viewmodel.ext.android.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.databinding.FragmentMetadataCollapsedBinding
-import se.materka.conflux.databinding.FragmentMetadataExpandedBinding
-import se.materka.conflux.db.entity.Station
-import se.materka.conflux.ui.MetadataBinding
+import se.materka.conflux.databinding.FragmentMetadataBinding
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
-import se.materka.conflux.ui.viewmodel.StationViewModel
-import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
-
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,93 +34,22 @@ import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 
 class MetadataFragment : Fragment() {
 
-    companion object {
-        enum class ViewState {
-            COLLAPSED,
-            EXPANDED
-        }
-    }
-
-    interface Listener {
-        fun onViewStateChanged(state: ViewState)
-    }
-
     private val metadataViewModel: MetadataViewModel? by lazy {
         activity?.getViewModel<MetadataViewModel>()
     }
 
-    private val stationViewModel: StationViewModel? by lazy {
-        activity?.getViewModel<StationViewModel>()
-    }
-
-    private val metadata = MetadataBinding()
-
-    private var listener: Listener? = null
-
-    private var state: ViewState? = null
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        metadataViewModel?.metadata?.observe(this, Observer {
-            metadata.artist = it?.getString(MediaMetadataCompat.METADATA_KEY_ARTIST)
-            metadata.title = it?.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-            metadata.show = it?.getString(ShoutcastMetadata.METADATA_KEY_SHOW)
-        })
-
-        metadataViewModel?.isPlaying?.observe(this, Observer { playing ->
-            if (playing != true) {
-                collapse()
-            }
-        })
-
-        stationViewModel?.selected?.observe(this, Observer { station ->
-            metadata.clear()
-            metadata.station = station ?: Station().apply { name = ""; url = "" }
-        })
-
-        return inflater.inflate(R.layout.fragment_metadata, container, false)
+        val binding = DataBindingUtil.inflate<FragmentMetadataBinding>(layoutInflater, R.layout.fragment_metadata, container, false)
+        binding.setLifecycleOwner(this)
+        binding.viewmodel = metadataViewModel
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        collapse(false)
-    }
-
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        if (context is MetadataFragment.Listener) {
-            listener = context
-        } else {
-            throw RuntimeException(context!!.toString() + " must implement Listener")
-        }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
-    private fun expand() {
-        if (state != ViewState.EXPANDED) {
-            val binding = FragmentMetadataExpandedBinding.inflate(layoutInflater, view as ViewGroup, false)
-            binding.metadata = metadata
-            binding.root.setOnClickListener { collapse() }
-            transition(binding.root)
-            state = ViewState.EXPANDED
-            listener?.onViewStateChanged(ViewState.EXPANDED)
-        }
-    }
-
-    private fun collapse(updateListener: Boolean = true) {
-        if (state != ViewState.COLLAPSED) {
-            val binding = FragmentMetadataCollapsedBinding.inflate(layoutInflater, view as ViewGroup, false)
-            binding.metadata = metadata
-            binding.root.setOnClickListener { expand() }
-            transition(binding.root)
-            state = ViewState.COLLAPSED
-            if (updateListener) {
-                listener?.onViewStateChanged(ViewState.COLLAPSED)
-            }
-        }
+        /*view.btn_play.setOnClickListener {
+            Toast.makeText(context, "Play Clicked", Toast.LENGTH_SHORT).show()
+        }*/
     }
 
     private fun transition(destination: View) {

@@ -1,18 +1,18 @@
 package se.materka.conflux.ui.view
 
-import android.app.AlertDialog
 import android.app.Dialog
-import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
 import android.view.LayoutInflater
+import androidx.appcompat.app.AlertDialog
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.DialogFragment
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentInfoBinding
 import se.materka.conflux.db.entity.Station
 
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ class InfoFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val binding: FragmentInfoBinding = DataBindingUtil.inflate(LayoutInflater.from(activity), R.layout.fragment_info, null, false)
         binding.station = arguments?.getParcelable(ARG_STATION)
-        return AlertDialog.Builder(activity, R.style.AppTheme_InfoDialog)
+        return AlertDialog.Builder(requireContext())
                 .setTitle("StationModel Information")
                 .setView(binding.root)
-                .setPositiveButton("CLOSE", { dialog, _ -> dialog?.dismiss() })
+                .setPositiveButton("CLOSE") { dialog, _ -> dialog?.dismiss() }
                 .create()
     }
 

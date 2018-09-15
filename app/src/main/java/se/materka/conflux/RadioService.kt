@@ -8,22 +8,29 @@ import android.content.IntentFilter
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.app.NotificationManagerCompat
+import android.os.IBinder
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaBrowserServiceCompat
+import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaButtonReceiver
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ServiceLifecycleDispatcher
+import androidx.media.MediaBrowserServiceCompat
+import androidx.media.session.MediaButtonReceiver
+import org.koin.android.ext.android.inject
 import se.materka.conflux.db.entity.Station
+import se.materka.conflux.db.repository.StationRepository
 import se.materka.conflux.ui.view.MainActivity
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
-import timber.log.Timber
 import java.lang.IllegalStateException
 
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +45,18 @@ import java.lang.IllegalStateException
  * limitations under the License.
  */
 
-class MediaBrowserService : MediaBrowserServiceCompat() {
+class RadioService : MediaBrowserServiceCompat(), LifecycleOwner {
+    override fun getLifecycle(): Lifecycle {
+        return lifecycleDispatcher.lifecycle
+    }
 
     companion object {
-        val SERVICE_ID: Int = 1
+        const val SERVICE_ID: Int = 1
     }
+
+    private val lifecycleDispatcher = ServiceLifecycleDispatcher(this)
+
+    private val stationRepository: StationRepository by inject()
 
     private var nowPlaying: Station? = null
 
@@ -53,7 +67,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         }
         val intent = PendingIntent.getActivity(applicationContext, 0,
                 notificationIntent, 0)
-        MediaSessionCompat(this@MediaBrowserService, MediaBrowserService::class.java.name).apply {
+        MediaSessionCompat(this@RadioService, RadioService::class.java.name).apply {
             setSessionActivity(intent)
 
             // Set an initial PlaybackState with ACTION_PLAY, so media buttons can start the player
@@ -88,12 +102,21 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         }
     }
 
-    private val player: Player by lazy {
-        Player(this, PlaybackCallback())
+    private val player: RadioPlayer by lazy {
+        RadioPlayer(this, PlaybackCallback())
     }
 
     // MediaSessionCallback() has methods that handle callbacks from a media controller
     private val mediaSessionCallback: MediaSessionCompat.Callback = object : MediaSessionCompat.Callback() {
+
+        override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
+            super.onPlayFromMediaId(mediaId, extras)
+            if (mediaId != null) {
+                stationRepository.getStation(mediaId.toLong()).observeOnce(Observer {
+                    play(Uri.parse(it?.url))
+                })
+            }
+        }
 
         override fun onPlayFromUri(uri: Uri?, extras: Bundle?) {
             play(uri)
@@ -117,7 +140,19 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     }
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        result.detach()
+        stationRepository.getStations().observeOnce(Observer { stations ->
+            val mediaItems = mutableListOf<MediaBrowserCompat.MediaItem>()
+            stations?.forEach { station ->
+                val description: MediaDescriptionCompat = MediaDescriptionCompat.Builder()
+                        .setMediaId(station.id?.toString())
+                        .setMediaUri(Uri.parse(station.url))
+                        .setTitle(station.name)
+                        .build()
+                mediaItems.add(MediaBrowserCompat.MediaItem(description, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE))
+            }
+            result.sendResult(mediaItems)
+        })
     }
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
@@ -125,12 +160,26 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     }
 
     override fun onCreate() {
+        lifecycleDispatcher.onServicePreSuperOnCreate()
         super.onCreate()
         sessionToken = mediaSession.sessionToken
+
+    }
+
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
+    override fun onStart(intent: Intent?, startId: Int) {
+        lifecycleDispatcher.onServicePreSuperOnStart()
+        super.onStart(intent, startId)
+    }
+
+    override fun onBind(intent: Intent?): IBinder {
+        lifecycleDispatcher.onServicePreSuperOnBind()
+        return super.onBind(intent)
     }
 
     override fun onDestroy() {
         stop(true)
+        lifecycleDispatcher.onServicePreSuperOnDestroy()
         super.onDestroy()
     }
 
@@ -169,11 +218,11 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
             // TODO: Investigate why for some unknown reason we occasionally selectAll an exception for
             // "beginBroadcast() called while already in a broadast"
             // RemoteCallbackList.beginBroadcast -> Måste kallas på samma tråd hela tiden. Kan vara så att den kallas på annan tråd
-            Timber.e(e)
+            // TODO: error("Illegal state detected", e)
         }
     }
 
-    private inner class PlaybackCallback : Player.Callback {
+    private inner class PlaybackCallback : RadioPlayer.Callback {
         override fun onPlaybackStateChanged(state: Int) {
             stateBuilder.setState(state, 0L, 0f).build().also {
                 setPlaybackState(it)
@@ -183,7 +232,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         override fun onError(errorCode: Int, error: String) {
             val state = stateBuilder
                     .setState(PlaybackStateCompat.STATE_ERROR, 0L, 0f)
-                    .setErrorMessage(404, "No working url found")
+                    .setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, "No working url found")
                     .build()
             setPlaybackState(state)
         }
@@ -196,10 +245,11 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
                     .putLong(ShoutcastMetadata.METADATA_KEY_BITRATE, metadata.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE))
                     .putLong(ShoutcastMetadata.METADATA_KEY_CHANNELS, metadata.getLong(ShoutcastMetadata.METADATA_KEY_CHANNELS))
                     .putString(ShoutcastMetadata.METADATA_KEY_FORMAT, metadata.getString(ShoutcastMetadata.METADATA_KEY_FORMAT))
-                    .putString(ShoutcastMetadata.METADATA_KEY_STATION, nowPlaying?.name ?: metadata.getString(ShoutcastMetadata.METADATA_KEY_URL))
+                    .putString(ShoutcastMetadata.METADATA_KEY_STATION, nowPlaying?.name
+                            ?: metadata.getString(ShoutcastMetadata.METADATA_KEY_URL))
                     .putString(ShoutcastMetadata.METADATA_KEY_URL, metadata.getString(ShoutcastMetadata.METADATA_KEY_URL))
             mediaSession.setMetadata(mediaMetadataBuilder.build())
-            notificationManager.notify(SERVICE_ID, NotificationUtil.build(this@MediaBrowserService, mediaSession))
+            notificationManager.notify(SERVICE_ID, NotificationUtil.build(this@RadioService, mediaSession))
         }
     }
 }

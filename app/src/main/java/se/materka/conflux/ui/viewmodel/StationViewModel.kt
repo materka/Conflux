@@ -1,15 +1,13 @@
 package se.materka.conflux.ui.viewmodel
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import se.materka.conflux.db.entity.Station
 import se.materka.conflux.db.repository.StationRepository
 
-
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +24,6 @@ import se.materka.conflux.db.repository.StationRepository
 
 class StationViewModel(application: Application, private val repository: StationRepository) : AndroidViewModel(application) {
 
-    val selected: MutableLiveData<Station> = MutableLiveData()
-
     fun getStations(): LiveData<List<Station>>? {
         return repository.getStations()
     }
@@ -42,9 +38,5 @@ class StationViewModel(application: Application, private val repository: Station
 
     fun update(station: Station) {
         repository.update(station)
-    }
-
-    fun select(station: Station) {
-        selected.postValue(station)
     }
 }

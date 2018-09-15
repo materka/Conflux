@@ -1,18 +1,19 @@
 package se.materka.conflux.ui.viewmodel
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.MutableLiveData
-import android.graphics.Bitmap
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import se.materka.conflux.db.entity.Station
-import se.materka.conflux.db.repository.StationRepository
+import android.media.session.PlaybackState
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import org.koin.core.parameter.parametersOf
+import org.koin.standalone.KoinComponent
+import org.koin.standalone.inject
+import se.materka.conflux.RadioSession
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
-import timber.log.Timber
 
 /**
- * Copyright 2017 Mattias Karlsson
+ * Copyright Mattias Karlsson
 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,32 +28,28 @@ import timber.log.Timber
  * limitations under the License.
  */
 
-class MetadataViewModel(application: Application, private val stationRepository: StationRepository) : AndroidViewModel(application) {
+class MetadataViewModel(application: Application) : AndroidViewModel(application), KoinComponent {
 
-    val metadata = MutableLiveData<MediaMetadataCompat>()
-    val isPlaying = MutableLiveData<Boolean>()
-    private val artistArt = MutableLiveData<Bitmap>()
+    private val radioSession: RadioSession by inject()
 
-    fun onMetadataChanged(data: MediaMetadataCompat?, currentStation: Station?) {
-        Timber.i("New metadata")
-        metadata.value = data
-        val bitrate = data?.getLong(ShoutcastMetadata.METADATA_KEY_BITRATE)
-        val format = data?.getString(ShoutcastMetadata.METADATA_KEY_FORMAT)
+    val artist: LiveData<String>
+    val title: LiveData<String>
+    val station: LiveData<String>
 
-        currentStation?.let { station ->
-            if (station.isPersisted && (station.bitrate != bitrate || station.format != format)) {
-                station.bitrate = bitrate
-                station.format = format
-                stationRepository.update(station)
-            }
-        }
-
+    val isPlaying: LiveData<Boolean> = Transformations.map(radioSession.playbackState) { playbackState ->
+        playbackState.state == PlaybackState.STATE_PLAYING
     }
 
-    fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
-        isPlaying.value = when (state?.state) {
-            PlaybackStateCompat.STATE_PLAYING -> true
-            else -> false
+    init {
+        artist = Transformations.map(radioSession.nowPlaying) { metadata ->
+            metadata.getString(ShoutcastMetadata.METADATA_KEY_ARTIST)
+        }
+        title = Transformations.map(radioSession.nowPlaying) { metadata ->
+            metadata.getString(ShoutcastMetadata.METADATA_KEY_TITLE)
+        }
+
+        station = Transformations.map(radioSession.nowPlaying) { metadata ->
+            metadata.getString(ShoutcastMetadata.METADATA_KEY_STATION)
         }
     }
 }
