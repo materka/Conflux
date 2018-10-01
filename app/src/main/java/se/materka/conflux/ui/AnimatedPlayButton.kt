@@ -9,14 +9,14 @@ import se.materka.conflux.R
 class AnimatedPlayButton : ImageButton {
 
     private val playToPauseAnim: AnimatedVectorDrawableCompat? by lazy {
-        AnimatedVectorDrawableCompat.create(context, R.drawable.play_to_pause_anim)
+        AnimatedVectorDrawableCompat.create(context, R.drawable.anim_play_to_pause)
     }
 
     private val pauseToPlayAnim: AnimatedVectorDrawableCompat? by lazy {
-        AnimatedVectorDrawableCompat.create(context, R.drawable.pause_to_play_anim)
+        AnimatedVectorDrawableCompat.create(context, R.drawable.anim_pause_to_play)
     }
 
-    private var isShowingPlay = true
+    private var isPlaying: Boolean = false
 
     constructor(ctx: Context) : super(ctx)
 
@@ -24,28 +24,17 @@ class AnimatedPlayButton : ImageButton {
 
     constructor(ctx: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(ctx, attrs, defStyleAttr)
 
-    constructor(ctx: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(ctx, attrs, defStyleAttr, defStyleRes)
-
     init {
         setImageDrawable(playToPauseAnim)
+        setOnClickListener {
+            setState(!isPlaying)
+        }
     }
 
-    fun toggle() {
-        val drawable = if (isShowingPlay) playToPauseAnim else pauseToPlayAnim
+    fun setState(playing: Boolean) {
+        this.isPlaying = playing
+        val drawable = if (playing) playToPauseAnim else pauseToPlayAnim
         this.setImageDrawable(drawable)
         drawable?.start()
-        isShowingPlay = !isShowingPlay
-    }
-
-    fun showPlay() {
-        if (!isShowingPlay) {
-            toggle()
-        }
-    }
-
-    fun showPause() {
-        if (isShowingPlay) {
-            toggle()
-        }
     }
 }

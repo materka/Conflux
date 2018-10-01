@@ -6,9 +6,11 @@ import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityCompat
@@ -17,15 +19,15 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.mikepenz.iconics.context.IconicsContextWrapper
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.menu_action.view.*
 import org.koin.androidx.viewmodel.ext.android.getViewModel
 import se.materka.conflux.R
-import se.materka.conflux.ui.DividerItemDecoration
+import se.materka.conflux.ui.StickyItemDecoration
 import se.materka.conflux.ui.adapter.ListAdapter
 import se.materka.conflux.ui.viewmodel.MainActivityViewModel
-import se.materka.conflux.ui.viewmodel.MetadataViewModel
+
 
 /**
  * Copyright Mattias Karlsson
@@ -43,13 +45,10 @@ import se.materka.conflux.ui.viewmodel.MetadataViewModel
  * limitations under the License.
  */
 
-class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUrlFragment.PlayUrlDialogListener {
+class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
+        PlayUrlFragment.PlayUrlDialogListener, ListAdapter.ListAdapterListener, MetadataFragment.MetadataFragmentListener {
 
     private lateinit var listAdapter: ListAdapter
-
-    private val metadataViewModel: MetadataViewModel by lazy {
-        getViewModel<MetadataViewModel>()
-    }
 
     private val mainActivityViewModel: MainActivityViewModel by lazy {
         getViewModel<MainActivityViewModel>()
@@ -60,34 +59,19 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUr
         setContentView(R.layout.activity_main)
         //setSupportActionBar(toolbar as Toolbar)
 
-        listAdapter = ListAdapter({ item -> itemClicked(item) },
-                { item -> itemLongClicked(item) })
+        listAdapter = ListAdapter(this)
 
-        list.apply {
+        rvList.apply {
             layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
             adapter = listAdapter
-            addItemDecoration(DividerItemDecoration(context, false, false, null, getSectionCallback()))
+            addItemDecoration(androidx.recyclerview.widget.DividerItemDecoration(this.context, RecyclerView.VERTICAL))
+            addItemDecoration(StickyItemDecoration(listAdapter))
         }
-
-        metadataViewModel.isPlaying.observe(this, Observer { playing ->
-            if (playing == true) {
-                setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
-            } else {
-                setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
-            }
-        })
-
         mainActivityViewModel.items.observe(this, Observer { items ->
             if (items != null && !items.isEmpty()) {
                 listAdapter.updateDataSet(items)
             }
         })
-
-        setBottomSheetState(BottomSheetBehavior.STATE_HIDDEN)
-
-        newStation.setOnClickListener {
-            showPlayDialog()
-        }
     }
 
     public override fun onResume() {
@@ -121,14 +105,6 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUr
         volumeControlStream = AudioManager.STREAM_MUSIC
     }
 
-    private fun getSectionCallback(): DividerItemDecoration.SectionCallback {
-        return object : DividerItemDecoration.SectionCallback {
-            override fun isSection(position: Int): Boolean {
-                return position == 0 || listAdapter.items[position] != listAdapter.items[position - 1]
-            }
-        }
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
@@ -151,10 +127,6 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUr
         }
     }
 
-    override fun attachBaseContext(newBase: Context?) {
-        super.attachBaseContext(IconicsContextWrapper.wrap(newBase))
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
 
@@ -169,6 +141,11 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUr
             }
         }
 
+        val addItem = menu.findItem(R.id.action_add)
+        addItem.setOnMenuItemClickListener {
+            showPlayDialog()
+            true
+        }
         return true
     }
 
@@ -180,14 +157,6 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUr
     override fun onQueryTextSubmit(query: String): Boolean {
         listAdapter.filter.filter(query)
         return false
-    }
-
-    override fun onBackPressed() {
-        if (BottomSheetBehavior.from(metadata.view).state == BottomSheetBehavior.STATE_EXPANDED) {
-            setBottomSheetState(BottomSheetBehavior.STATE_COLLAPSED)
-        } else {
-            finish()
-        }
     }
 
     override fun onDialogFinished(resultCode: Int?, result: Bundle) {
@@ -209,49 +178,38 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUr
                 .show(supportFragmentManager, "PlayUrlFragment")
     }
 
-    private fun setBottomSheetState(state: Int) {
-        if (metadata != null) {
-            BottomSheetBehavior.from(metadata.view).let {
-                if (it.state != state) {
-                    it.state = state
-                    //(toolbar.parent as AppBarLayout).setExpanded(state != BottomSheetBehavior.STATE_EXPANDED, true)
-                }
-            }
-        }
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
-        return if (id == R.id.action_search) {
+        return if (id == R.id.action_search || id == R.id.action_add) {
             true
         } else super.onOptionsItemSelected(item)
 
     }
 
-    private fun itemClicked(item: MediaBrowserCompat.MediaItem) {
+    override fun onItemClicked(item: MediaBrowserCompat.MediaItem) {
         mainActivityViewModel.select(item)
     }
 
-    private fun itemLongClicked(item: MediaBrowserCompat.MediaItem) {
-        /*val actionView = LayoutInflater.from(this).inflate(R.layout.menu_action, null, false)
+    override fun onItemLongClicked(item: MediaBrowserCompat.MediaItem) {
+        val actionView = LayoutInflater.from(this).inflate(R.layout.menu_action, null, false)
         val actionDialog = BottomSheetDialog(this)
 
         actionView.info.setOnClickListener {
-            InfoFragment.newInstance(station).show(supportFragmentManager, "InfoFragment")
+            //InfoFragment.newInstance(station).show(supportFragmentManager, "InfoFragment")
             actionDialog.dismiss()
         }
 
         actionView.edit.setOnClickListener {
-            EditFragment.newInstance(station).show(supportFragmentManager, "EditFragment")
+            //EditFragment.newInstance(station).show(supportFragmentManager, "EditFragment")
             actionDialog.dismiss()
         }
 
         actionView.delete.setOnClickListener {
-            AlertDialog.Builder(this, R.style.AppTheme_WarningDialog)
+            AlertDialog.Builder(this)
                     .setTitle("Remove")
                     .setMessage("Are you sure you want to remove this station?")
                     .setPositiveButton("REMOVE") { _, _ ->
-                        stationViewModel?.delete(station)
+                        //stationViewModel?.delete(station)
                     }
                     .setNegativeButton("CANCEL") { dialog, _ -> dialog.dismiss() }
                     .show()
@@ -261,7 +219,11 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener, PlayUr
         actionDialog.apply {
             setContentView(actionView)
             show()
-        }*/
+        }
+    }
+
+    override fun onPlayButtonClicked() {
+        mainActivityViewModel.togglePlayback()
     }
 
     companion object {

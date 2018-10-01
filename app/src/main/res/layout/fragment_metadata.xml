@@ -1,92 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
         <import type="android.view.View" />
 
         <variable
-            name="viewmodel"
+            name="viewModel"
             type="se.materka.conflux.ui.viewmodel.MetadataViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/primary">
+        android:layout_height="64dp">
 
-        <se.materka.conflux.ui.AnimatedPlayButton
-            android:id="@+id/animatedPlayButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:background="@null"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <LinearLayout
-            android:id="@+id/linearLayout"
+        <TextView
+            android:id="@+id/textTitle"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:gravity="center_vertical"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="@+id/animatedPlayButton"
-            app:layout_constraintEnd_toStartOf="@+id/test"
-            app:layout_constraintStart_toEndOf="@+id/animatedPlayButton"
-            app:layout_constraintTop_toTopOf="@+id/animatedPlayButton">
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@{viewModel.title}"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toStartOf="@+id/btnPlay"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@tools:sample/lorem/random" />
 
-            <TextView
-                android:id="@+id/text_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:text="@{viewmodel.title}"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:transitionName="text_title"
-                android:visibility="@{ viewmodel.title.length() > 0 ? View.VISIBLE : View.GONE }" />
-
-            <TextView
-                android:id="@+id/text_artist"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:text="@{viewmodel.artist}"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:transitionName="text_artist"
-                android:visibility="@{ viewmodel.artist.length() > 0 ? View.VISIBLE : View.GONE }" />
-
-            <TextView
-                android:id="@+id/text_station"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:text="@{viewmodel.station}"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:textSize="10sp"
-                android:transitionName="text_station"
-                android:visibility="@{ viewmodel.station.length() > 0 ? View.VISIBLE : View.GONE }" />
-
-        </LinearLayout>
+        <TextView
+            android:id="@+id/textArtist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="@{viewModel.artist}"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toStartOf="@+id/btnPlay"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textTitle"
+            tools:text="@tools:sample/lorem/random" />
 
         <se.materka.conflux.ui.AnimatedPlayButton
-            android:id="@+id/test"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
+            android:id="@+id/btnPlay"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:background="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>

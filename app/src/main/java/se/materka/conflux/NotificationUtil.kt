@@ -35,9 +35,9 @@ import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 object NotificationUtil {
 
     fun build(context: Context, mediaSession: MediaSessionCompat): Notification {
-        val builder = getBuilder(context, mediaSession)
-        val style = getMediaStyle(context, mediaSession)
-        return builder.setStyle(style).build()
+        return getBuilder(context, mediaSession).run {
+            setStyle(getMediaStyle(context, mediaSession))
+        }.build()
     }
 
     @SuppressLint("NewApi")
@@ -72,9 +72,9 @@ object NotificationUtil {
             setContentTitle(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_TITLE))
             setContentText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_ARTIST))
             setSubText(mediaMetadata?.getString(ShoutcastMetadata.METADATA_KEY_STATION))
-
+            
             // Add an app icon
-            setSmallIcon(R.drawable.md_play)
+            setSmallIcon(R.drawable.ic_play_arrow_white_24dp)
 
             // Enable launching the player by clicking the notification
             setContentIntent(controller.sessionActivity)
@@ -100,13 +100,13 @@ object NotificationUtil {
     private fun getAction(context: Context, mediaSession: MediaSessionCompat): NotificationCompat.Action {
         return if (!mediaSession.isActive)
             NotificationCompat.Action(
-                    R.drawable.md_play, "PLAY",
+                    R.drawable.ic_play_arrow_white_24dp, "PLAY",
                     MediaButtonReceiver.buildMediaButtonPendingIntent(context.applicationContext,
                             PlaybackStateCompat.ACTION_PLAY)
             )
         else
             NotificationCompat.Action(
-                    R.drawable.md_stop, "STOP",
+                    R.drawable.ic_stop_white_24dp, "STOP",
                     MediaButtonReceiver.buildMediaButtonPendingIntent(context.applicationContext,
                             PlaybackStateCompat.ACTION_STOP)
             )

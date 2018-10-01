@@ -25,8 +25,6 @@ import se.materka.exoplayershoutcastdatasource.ShoutcastMetadataListener
 import java.io.IOException
 import java.util.*
 
-@SuppressLint("WifiManagerPotentialLeak")
-
 /**
  * Copyright Mattias Karlsson
 
@@ -72,16 +70,16 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
     }
 
     private val wifiLock by lazy {
-        (context.getSystemService(Context.WIFI_SERVICE) as WifiManager)
-                .createWifiLock(WifiManager.WIFI_MODE_FULL, "confluxWifiLock")
+        (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
+                .createWifiLock(WifiManager.WIFI_MODE_FULL, "${context.getString(R.string.app_name)}:WifiLock")
     }
 
     private val wakeLock by lazy {
         // Make sure the media player will acquire a wake-lock while
         // playing. If we don't do that, the CPU might go to sleep while the
         // song is playing, causing playback to stop.
-        (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
-                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "conflux:WakeLock")
+        (context.applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager)
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "${context.getString(R.string.app_name)}:WakeLock")
     }
 
     private val audioFocusManager: AudioFocusManager = AudioFocusManager.newInstance(mediaBrowser) { audioFocus ->  onAudioFocusChanged(audioFocus) }
@@ -174,6 +172,8 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
     }
 
     fun stop(releasePlayer: Boolean = false) {
+        callback.onMetadataReceived(ShoutcastMetadata.Builder().build())
+
         if (player.playWhenReady) {
             // TODO : info("Stopping playback")
 

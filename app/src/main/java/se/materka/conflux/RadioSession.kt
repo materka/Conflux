@@ -50,18 +50,6 @@ class RadioSession(context: Context, componentName: ComponentName) {
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             playbackState.postValue(state)
-            /*val bottomSheetState: Int = if (playbackState?.state == PlaybackStateCompat.STATE_PLAYING) {
-                BottomSheetBehavior.STATE_COLLAPSED
-            } else {
-                BottomSheetBehavior.STATE_HIDDEN
-            }
-
-            //setBottomSheetState(bottomSheetState)
-            //metadataViewModel.onPlaybackStateChanged(playbackState)
-
-            if (playbackState?.state == PlaybackStateCompat.STATE_ERROR) {
-                Snackbar.make(coordinator, playbackState.errorMessage, Snackbar.LENGTH_LONG).show()
-            }*/
         }
     }
 
@@ -77,6 +65,10 @@ class RadioSession(context: Context, componentName: ComponentName) {
         mediaBrowser.unsubscribe(parentId, callback)
     }
 
+    fun play() {
+        mediaController.transportControls.play()
+    }
+
     fun play(item: MediaBrowserCompat.MediaItem) {
         mediaController.transportControls.playFromMediaId(item.mediaId, Bundle.EMPTY)
     }
@@ -85,8 +77,12 @@ class RadioSession(context: Context, componentName: ComponentName) {
         mediaController.transportControls.playFromUri(uri, Bundle.EMPTY)
     }
 
-    fun stop() {
-        mediaController.transportControls.stop()
+    fun toggle() {
+        if (playbackState.value?.state == PlaybackStateCompat.STATE_PLAYING) {
+            mediaController.transportControls.stop()
+        } else {
+            mediaController.transportControls.play()
+        }
     }
 
     private val connectionCallback = object : MediaBrowserCompat.ConnectionCallback() {

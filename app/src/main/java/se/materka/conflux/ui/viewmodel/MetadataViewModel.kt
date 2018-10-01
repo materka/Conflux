@@ -47,7 +47,6 @@ class MetadataViewModel(application: Application) : AndroidViewModel(application
         title = Transformations.map(radioSession.nowPlaying) { metadata ->
             metadata.getString(ShoutcastMetadata.METADATA_KEY_TITLE)
         }
-
         station = Transformations.map(radioSession.nowPlaying) { metadata ->
             metadata.getString(ShoutcastMetadata.METADATA_KEY_STATION)
         }

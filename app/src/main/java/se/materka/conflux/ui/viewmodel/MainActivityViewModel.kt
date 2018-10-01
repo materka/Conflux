@@ -62,4 +62,8 @@ class MainActivityViewModel(application: Application, private val repository: St
     fun saveUri(uri: Uri, name: String) {
         repository.create(Gson().fromJson("{ 'name': '$name', 'url': '$uri'}"))
     }
+
+    fun togglePlayback() {
+        radioSession.toggle()
+    }
 }

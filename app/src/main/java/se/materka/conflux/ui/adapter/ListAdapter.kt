@@ -1,5 +1,6 @@
 package se.materka.conflux.ui.adapter
 
+import android.graphics.drawable.ColorDrawable
 import android.support.v4.media.MediaBrowserCompat
 import android.view.LayoutInflater
 import android.view.View
@@ -7,10 +8,12 @@ import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import androidx.databinding.DataBindingUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_list_item.view.*
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentListItemBinding
+import se.materka.conflux.ui.StickyItemDecoration
 
 /**
  * Copyright Mattias Karlsson
@@ -28,8 +31,25 @@ import se.materka.conflux.databinding.FragmentListItemBinding
  * limitations under the License.
  */
 
-class ListAdapter(val onItemClicked: (item: MediaBrowserCompat.MediaItem) -> Unit?,
-                  val onItemLongClicked: (item: MediaBrowserCompat.MediaItem) -> Unit?) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), Filterable {
+class ListAdapter(private val listener: ListAdapterListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), Filterable, StickyItemDecoration.StickyItemListener {
+    override fun getPositionForSelectedItem(itemPosition: Int): Int {
+        return (itemPosition downTo 0).firstOrNull { isSelected(it) } ?: 0
+    }
+
+    override fun getSelectedItemLayout(itemPosition: Int): Int {
+        return R.layout.fragment_list_item
+    }
+
+    override fun bindSelectedItemData(selectedItem: View, selectedItemPosition: Int) {
+        selectedItem.viewSelected.visibility = View.VISIBLE
+        selectedItem.background = ColorDrawable(selectedItem.resources.getColor(R.color.primary))
+        selectedItem.textTitle.text = selected?.description?.title
+        selectedItem.textUri.text = selected?.description?.mediaUri?.toString()
+    }
+
+    override fun isSelected(itemPosition: Int): Boolean {
+        return parent.findViewHolderForAdapterPosition(itemPosition)?.itemView?.viewSelected?.visibility == View.VISIBLE
+    }
 
     override fun getFilter(): Filter = object : Filter() {
         override fun performFiltering(constraint: CharSequence?): FilterResults {
@@ -46,7 +66,7 @@ class ListAdapter(val onItemClicked: (item: MediaBrowserCompat.MediaItem) -> Uni
         }
 
         override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-            results?.let {filter ->
+            results?.let { filter ->
                 this@ListAdapter.filtered = filter.values as List<MediaBrowserCompat.MediaItem>
                 notifyDataSetChanged()
             }
@@ -68,28 +88,22 @@ class ListAdapter(val onItemClicked: (item: MediaBrowserCompat.MediaItem) -> Uni
         if (holder is ItemViewHolder) {
             filtered[position].let { item ->
                 holder.bind(item)
-                holder.itemView.selected?.visibility = if (item.mediaId == selected?.mediaId) View.VISIBLE else View.GONE
+                holder.itemView.viewSelected?.visibility = if (item.mediaId == selected?.mediaId) View.VISIBLE else View.GONE
             }
         }
     }
 
     override fun getItemCount(): Int {
-        return if (filtered.isEmpty()) 1 else filtered.size + 1
+        return filtered.size
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (position == filtered.size) FOOTER_VIEW else R.layout.fragment_list_item
+        return R.layout.fragment_list_item
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        return if (viewType == FOOTER_VIEW) {
-            val view = inflater.inflate(R.layout.fragment_list_footer, parent, false)
-            FooterViewHolder(view)
-        } else {
-            val binding: FragmentListItemBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.context), viewType, parent, false)
-            ItemViewHolder(binding)
-        }
+        val binding: FragmentListItemBinding = DataBindingUtil.inflate(LayoutInflater.from(parent.context), viewType, parent, false)
+        return ItemViewHolder(binding)
     }
 
     fun updateDataSet(items: List<MediaBrowserCompat.MediaItem>) {
@@ -104,23 +118,25 @@ class ListAdapter(val onItemClicked: (item: MediaBrowserCompat.MediaItem) -> Uni
 
     private fun select(position: Int) {
         for (i in 0 until itemCount) {
-            parent.findViewHolderForAdapterPosition(i)?.itemView?.selected?.visibility = View.GONE
+            parent.findViewHolderForAdapterPosition(i)?.itemView?.viewSelected?.visibility = View.GONE
         }
         selected = if (position == -1) null else filtered[position]
         notifyDataSetChanged()
     }
 
-    inner class FooterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
-
     inner class ItemViewHolder(private val listItemBinding: FragmentListItemBinding) : RecyclerView.ViewHolder(listItemBinding.root) {
 
         init {
             listItemBinding.root.setOnClickListener {
-                onItemClicked(filtered[adapterPosition])
+                if (!(parent.layoutManager as LinearLayoutManager)
+                                .isViewPartiallyVisible(itemView, true, false)) {
+                    parent.smoothScrollToPosition(adapterPosition)
+                }
+                listener.onItemClicked(filtered[adapterPosition])
                 select(adapterPosition)
             }
             listItemBinding.root.setOnLongClickListener {
-                onItemLongClicked(filtered[adapterPosition])
+                listener.onItemLongClicked(filtered[adapterPosition])
                 true
             }
         }
@@ -131,7 +147,8 @@ class ListAdapter(val onItemClicked: (item: MediaBrowserCompat.MediaItem) -> Uni
         }
     }
 
-    companion object {
-        private const val FOOTER_VIEW = 1
+    interface ListAdapterListener {
+        fun onItemClicked(item: MediaBrowserCompat.MediaItem)
+        fun onItemLongClicked(item: MediaBrowserCompat.MediaItem)
     }
 }
