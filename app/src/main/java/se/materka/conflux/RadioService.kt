@@ -222,7 +222,7 @@ class RadioService : MediaBrowserServiceCompat(), LifecycleOwner {
         }
     }
 
-    private inner class PlaybackCallback : RadioPlayer.Callback {
+    private inner class PlaybackCallback : RadioPlayer.RadioPlayerListener {
         override fun onPlaybackStateChanged(state: Int) {
             stateBuilder.setState(state, 0L, 0f).build().also {
                 setPlaybackState(it)

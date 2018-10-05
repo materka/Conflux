@@ -24,6 +24,11 @@ android {
     dataBinding {
         enabled true
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 kapt {
@@ -37,7 +42,8 @@ dependencies {
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.24.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.30.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.30.1'
 
     // Koin
     implementation 'org.koin:koin-androidx-scope:1.0.0-beta-2'
@@ -49,8 +55,8 @@ dependencies {
     // Anko
     implementation "org.jetbrains.anko:anko-appcompat-v7-commons:$anko_version"
 
-    implementation 'com.github.materka:exoplayer-shoutcast-datasource:1.0.0'
-    implementation 'com.google.android.exoplayer:exoplayer-core:2.6.1'
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.9.0'
+    implementation 'com.google.android.exoplayer:extension-okhttp:2.9.0'
 
     implementation 'com.google.code.gson:gson:2.8.2'
     implementation 'com.github.salomonbrys.kotson:kotson:2.5.0'

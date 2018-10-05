@@ -1,6 +1,5 @@
 package se.materka.conflux
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
@@ -8,20 +7,19 @@ import android.net.wifi.WifiManager
 import android.os.PowerManager
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.media.MediaBrowserServiceCompat
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.ExoPlayerFactory
 import com.google.android.exoplayer2.Player.*
+import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray
 import com.google.android.exoplayer2.util.Util
-import kotlinx.coroutines.experimental.launch
-import se.materka.exoplayershoutcastdatasource.ShoutcastDataSourceFactory
+import kotlinx.coroutines.experimental.*
+import okhttp3.OkHttpClient
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
-import se.materka.exoplayershoutcastdatasource.ShoutcastMetadataListener
 import java.io.IOException
 import java.util.*
 
@@ -41,7 +39,7 @@ import java.util.*
  * limitations under the License.
  */
 
-class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback: Callback) : ShoutcastMetadataListener {
+class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val listener: RadioPlayerListener) : ShoutcastDataSource.ShoutcastMetadataListener {
 
     companion object {
         // The volume we set the media player to when we lose audio focus, but are
@@ -51,7 +49,7 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
         private const val VOLUME_NORMAL = 1.0f
     }
 
-    interface Callback {
+    interface RadioPlayerListener {
         fun onPlaybackStateChanged(state: Int)
         fun onError(errorCode: Int, error: String)
         fun onMetadataReceived(metadata: ShoutcastMetadata)
@@ -63,10 +61,13 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
     private var audioState: Int = PlaybackStateCompat.STATE_NONE
     private var playOnFocusGain: Boolean = false
     private val playlist: Stack<Uri> = Stack()
+    private var metadata: ShoutcastMetadata? = null
 
-    private val dataSourceFactory: ShoutcastDataSourceFactory by lazy {
-        ShoutcastDataSourceFactory(
-                Util.getUserAgent(context, context.getString(R.string.app_name)), this)
+    private val shoutcastDataSource: ShoutcastDataSource by lazy {
+        ShoutcastDataSource(
+                OkHttpClient.Builder().build(),
+                Util.getUserAgent(context, context.getString(R.string.app_name)),
+                null, null, null, this)
     }
 
     private val wifiLock by lazy {
@@ -82,9 +83,9 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "${context.getString(R.string.app_name)}:WakeLock")
     }
 
-    private val audioFocusManager: AudioFocusManager = AudioFocusManager.newInstance(mediaBrowser) { audioFocus ->  onAudioFocusChanged(audioFocus) }
+    private val audioFocusManager: AudioFocusManager = AudioFocusManager.newInstance(mediaBrowser) { audioFocus -> onAudioFocusChanged(audioFocus) }
 
-    private val playerListener: com.google.android.exoplayer2.Player.EventListener = object : com.google.android.exoplayer2.Player.EventListener {
+    private val eventListener: com.google.android.exoplayer2.Player.EventListener = object : com.google.android.exoplayer2.Player.EventListener {
 
         override fun onPlayerError(error: ExoPlaybackException?) {
             // TODO: Log error
@@ -92,26 +93,25 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
                 play(playlist.pop())
                 return
             }
-            callback.onError(PlaybackStateCompat.STATE_ERROR, "Could not play provided station")
+            listener.onError(PlaybackStateCompat.STATE_ERROR, "Could not play provided station")
         }
 
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
             when (playbackState) {
                 STATE_BUFFERING -> {
-                    // TODO : info("PlaybackState: Buffering")
                     audioState = PlaybackStateCompat.STATE_BUFFERING
                 }
                 STATE_ENDED -> {
-                    // TODO : info("PlaybackState: Ended")
                     audioState = PlaybackStateCompat.STATE_STOPPED
                 }
                 STATE_IDLE -> {
-                    // TODO : info("PlaybackState: Idle")
                     audioState = PlaybackStateCompat.STATE_NONE
                 }
                 STATE_READY -> {
-                    // TODO : info("PlaybackState: Ready")
                     audioState = if (playWhenReady) {
+                        this@RadioPlayer.metadata?.let {
+                            listener.onMetadataReceived(it)
+                        }
                         PlaybackStateCompat.STATE_PLAYING
                     } else {
                         PlaybackStateCompat.STATE_STOPPED
@@ -119,46 +119,14 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
                 }
                 else -> audioState = PlaybackStateCompat.STATE_NONE
             }
-            callback.onPlaybackStateChanged(audioState)
-        }
-
-        override fun onLoadingChanged(isLoading: Boolean) {
-            // TODO : debug("Loading: $isLoading")
-        }
-
-        override fun onTimelineChanged(timeline: Timeline?, manifest: Any?) {
-            // TODO : debug("onTimelineChanged: ${timeline?.toString()} ${manifest?.toString()}")
-        }
-
-        override fun onTracksChanged(trackGroups: TrackGroupArray?, trackSelections: TrackSelectionArray?) {
-            // TODO : debug("onTracksChanged")
-        }
-
-        override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters?) {
-            // TODO : debug("onPlaybackParameterChanged")
-        }
-
-        override fun onRepeatModeChanged(repeatMode: Int) {
-            // TODO : debug("onRepeatModeChanged")
-        }
-
-        override fun onSeekProcessed() {
-            // TODO : debug("onSeekProcessed")
-        }
-
-        override fun onPositionDiscontinuity(reason: Int) {
-            // TODO : debug("onPositionDiscontinuity")
-        }
-
-        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-            // TODO : debug("onShuffleModeEnabledChanged")
+            listener.onPlaybackStateChanged(audioState)
         }
     }
 
     private val player: SimpleExoPlayer by lazy {
         ExoPlayerFactory.newSimpleInstance(context,
                 DefaultTrackSelector()).apply {
-            addListener(playerListener)
+            addListener(eventListener)
             audioAttributes = AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.CONTENT_TYPE_MUSIC)
@@ -167,12 +135,14 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
     }
 
     override fun onMetadataReceived(data: ShoutcastMetadata) {
-        // TODO : info("Metadata Received")
-        callback.onMetadataReceived(data)
+        this.metadata = data
+        if (this.audioState == PlaybackStateCompat.STATE_PLAYING) {
+            listener.onMetadataReceived(data)
+        }
     }
 
     fun stop(releasePlayer: Boolean = false) {
-        callback.onMetadataReceived(ShoutcastMetadata.Builder().build())
+        listener.onMetadataReceived(ShoutcastMetadata.Builder().build())
 
         if (player.playWhenReady) {
             // TODO : info("Stopping playback")
@@ -182,10 +152,9 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
 
             player.stop()
             player.playWhenReady = false
-            audioSource?.releaseSource()
 
             if (!releasePlayer) {
-                callback.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
+                listener.onPlaybackStateChanged(PlaybackStateCompat.STATE_STOPPED)
             }
         }
 
@@ -207,20 +176,24 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
             stop()
         }
 
-        audioFocusManager.requestAudioFocus().let {
+        audioFocusManager.requestAudioFocus().also {
             if (it == AudioManager.AUDIOFOCUS_GAIN && uri != null && uri != Uri.EMPTY) {
                 currentUri = uri
-                if (playlist.isEmpty() && PlaylistUtil.isPlayList(uri)) {
-                    launch {
-                        PlaylistUtil.getPlaylist(uri).let { list ->
-                            if (!list.isEmpty()) {
-                                playlist.addAll(list)
-                                playUri(playlist.pop())
+                if (playlist.isEmpty()) {
+                    GlobalScope.launch(Dispatchers.Main) {
+                        async(Dispatchers.Default) {
+                            PlaylistUtil.getPlaylist(uri).let { list ->
+                                if (!list.isEmpty()) {
+                                    playlist.addAll(list)
+                                }
                             }
+                        }.await()
+                        if (!playlist.empty()) {
+                            prepare(playlist.pop())
                         }
                     }
                 } else {
-                    playUri(uri)
+                    prepare(uri)
                 }
             }
         }
@@ -251,10 +224,10 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
         }
     }
 
-    private fun playUri(uri: Uri) {
+    private fun prepare(uri: Uri) {
         try {
             // This is the MediaSource representing the media to be played.
-            audioSource = ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri)
+            audioSource = ExtractorMediaSource.Factory { shoutcastDataSource }.createMediaSource(uri)
             player.prepare(audioSource)
             player.playWhenReady = true
 
@@ -265,11 +238,11 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val callback:
             // Prevent CPU from going to sleep while screen is off
             wakeLock.acquire(1000)
 
-            callback.onPlaybackStateChanged(PlaybackStateCompat.STATE_BUFFERING)
+            listener.onPlaybackStateChanged(PlaybackStateCompat.STATE_BUFFERING)
 
         } catch (e: IOException) {
             // TODO : error("Playing URL", e)
-            callback.onError(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, e.message
+            listener.onError(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, e.message
                     ?: "Unknown error")
         }
     }

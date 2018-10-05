@@ -11,3 +11,6 @@ fun <T> LiveData<T>.observeOnce(observer: Observer<T>) {
         }
     })
 }
+
+inline val <reified T: Any> T.TAG: String
+    get() = T::class.java.name

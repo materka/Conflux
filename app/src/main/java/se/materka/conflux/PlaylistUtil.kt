@@ -2,10 +2,10 @@ package se.materka.conflux
 
 import android.net.Uri
 import android.util.Log
+import kotlinx.coroutines.experimental.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import se.materka.TAG
 import java.io.IOException
 import java.io.InputStream
 
@@ -63,11 +63,12 @@ object PlaylistUtil {
                                     }
                                 }
 
+                                }
                             }
                         }
                     }
                 }
-            }
+
         } catch (e: IOException) {
             Log.e(TAG, "Playlist parser failed")
         } finally {
