@@ -83,8 +83,6 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val listener:
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "${context.getString(R.string.app_name)}:WakeLock")
     }
 
-    private val audioFocusManager: AudioFocusManager = AudioFocusManager.newInstance(mediaBrowser) { audioFocus -> onAudioFocusChanged(audioFocus) }
-
     private val eventListener: com.google.android.exoplayer2.Player.EventListener = object : com.google.android.exoplayer2.Player.EventListener {
 
         override fun onPlayerError(error: ExoPlaybackException?) {
@@ -147,9 +145,6 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val listener:
         if (player.playWhenReady) {
             // TODO : info("Stopping playback")
 
-            // Give up Audio focus
-            audioFocusManager.abandonAudioFocus()
-
             player.stop()
             player.playWhenReady = false
 
@@ -175,26 +170,23 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val listener:
         if (player.playWhenReady) {
             stop()
         }
-
-        audioFocusManager.requestAudioFocus().also {
-            if (it == AudioManager.AUDIOFOCUS_GAIN && uri != null && uri != Uri.EMPTY) {
-                currentUri = uri
-                if (playlist.isEmpty()) {
-                    GlobalScope.launch(Dispatchers.Main) {
-                        async(Dispatchers.Default) {
-                            PlaylistUtil.getPlaylist(uri).let { list ->
-                                if (!list.isEmpty()) {
-                                    playlist.addAll(list)
-                                }
+        if (uri != null) {
+            currentUri = uri
+            if (playlist.isEmpty()) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    async(Dispatchers.Default) {
+                        PlaylistUtil.getPlaylist(uri).let { list ->
+                            if (!list.isEmpty()) {
+                                playlist.addAll(list)
                             }
-                        }.await()
-                        if (!playlist.empty()) {
-                            prepare(playlist.pop())
                         }
+                    }.await()
+                    if (!playlist.empty()) {
+                        prepare(playlist.pop())
                     }
-                } else {
-                    prepare(uri)
                 }
+            } else {
+                prepare(uri)
             }
         }
     }
