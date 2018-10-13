@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
@@ -53,6 +54,8 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
     private val mainActivityViewModel: MainActivityViewModel by lazy {
         getViewModel<MainActivityViewModel>()
     }
+
+    private lateinit var menu: Menu
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,24 +133,36 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
 
-        val searchItem = menu.findItem(R.id.action_search)
-        val searchView = searchItem.actionView as SearchView
-        searchView.setOnQueryTextListener(this)
-        searchView.setOnQueryTextFocusChangeListener { v, hasFocus ->
-            if (!hasFocus) {
-                (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).also { manager ->
-                    manager.hideSoftInputFromWindow(v.windowToken, 0)
+        (menu.findItem(R.id.action_search)?.actionView as SearchView).apply {
+            setOnQueryTextListener(this@MainActivity)
+            setOnQueryTextFocusChangeListener { view, hasFocus ->
+                if (!hasFocus) {
+                    (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).also { manager ->
+                        manager.hideSoftInputFromWindow(view.windowToken, 0)
+                    }
                 }
             }
         }
 
-        val addItem = menu.findItem(R.id.action_add)
-        addItem.setOnMenuItemClickListener {
-            showPlayDialog()
-            true
+        menu.findItem(R.id.action_add)?.apply {
+            setOnMenuItemClickListener {
+                showPlayDialog()
+                true
+            }
         }
+
+        menu.findItem(R.id.action_save)?.apply {
+            setOnMenuItemClickListener {
+                Toast.makeText(this@MainActivity, "Saving station", Toast.LENGTH_SHORT).show()
+                true
+            }
+        }
+
+        this.menu = menu
+
         return true
     }
+
 
     override fun onQueryTextChange(query: String): Boolean {
         listAdapter.filter.filter(query)
@@ -160,12 +175,12 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
     }
 
     override fun onDialogFinished(resultCode: Int?, result: Bundle) {
-        when(resultCode) {
+        when (resultCode) {
             PLAY_URL_RESULT_CODE -> {
                 result.getString(PlayUrlFragment.RESULT_URI)?.let { uri ->
                     mainActivityViewModel.select(uri.toUri())
                     if (result.getBoolean(PlayUrlFragment.RESULT_SAVE)) {
-                        mainActivityViewModel.saveUri(uri.toUri(), result.getString(PlayUrlFragment.RESULT_NAME, uri))
+                        mainActivityViewModel.saveUrl(uri.toUri(), result.getString(PlayUrlFragment.RESULT_NAME, uri))
                     }
                 }
             }

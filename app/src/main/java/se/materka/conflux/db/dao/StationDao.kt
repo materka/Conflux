@@ -32,12 +32,15 @@ interface StationDao {
     @Query("SELECT * FROM stations WHERE id = :id")
     fun select(id: Long?): LiveData<Station>
 
+    @Query("SELECT * FROM stations WHERE url = :url")
+    fun selectWithUrl(url: String): LiveData<Station>
+
     @Update
     fun update(station: Station): Int
 
     @Delete
     fun delete(station: Station): Int
 
-    @Query("SELECT 1 FROM stations WHERE id = :id")
-    fun exists(id: Long?): Int
+    @Query("SELECT 1 FROM stations WHERE url = :uri")
+    fun exists(uri: String?): Int
 }

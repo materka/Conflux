@@ -26,15 +26,14 @@ class AnimatedPlayButton : ImageButton {
 
     init {
         setImageDrawable(playToPauseAnim)
-        setOnClickListener {
-            setState(!isPlaying)
-        }
     }
 
     fun setState(playing: Boolean) {
-        this.isPlaying = playing
-        val drawable = if (playing) playToPauseAnim else pauseToPlayAnim
-        this.setImageDrawable(drawable)
-        drawable?.start()
+        if (this.isPlaying != playing) {
+            this.isPlaying = playing
+            val drawable = if (playing) playToPauseAnim else pauseToPlayAnim
+            this.setImageDrawable(drawable)
+            drawable?.start()
+        }
     }
 }

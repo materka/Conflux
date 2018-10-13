@@ -1,15 +1,16 @@
 package se.materka.conflux.module
 
 import android.content.ComponentName
-import android.content.Context
 import org.koin.android.ext.koin.androidApplication
 import org.koin.androidx.viewmodel.ext.koin.viewModel
 import org.koin.dsl.module.module
 import se.materka.conflux.RadioService
 import se.materka.conflux.RadioSession
 import se.materka.conflux.db.AppDatabase
-import se.materka.conflux.db.repository.StationRepository
-import se.materka.conflux.db.repository.StationRepositoryImpl
+import se.materka.conflux.db.entity.Station
+import se.materka.conflux.db.repository.Repository
+import se.materka.conflux.db.repository.StationFileRepository
+import se.materka.conflux.db.repository.StationRoomRepository
 import se.materka.conflux.ui.viewmodel.MainActivityViewModel
 import se.materka.conflux.ui.viewmodel.MetadataViewModel
 
@@ -18,9 +19,10 @@ import se.materka.conflux.ui.viewmodel.MetadataViewModel
  */
 
 val BaseModule = module {
-    single { StationRepositoryImpl(get()) as StationRepository }
+    //single { StationFileRepository(androidApplication().applicationContext) as Repository<Station> }
+    single { StationRoomRepository(get()) as Repository<Station> }
     single { AppDatabase.instance(get()).stationDao() }
-    single { params -> RadioSession(androidApplication().applicationContext, ComponentName(androidApplication().applicationContext, RadioService::class.java)) }
+    single { RadioSession(androidApplication().applicationContext, ComponentName(androidApplication().applicationContext, RadioService::class.java)) }
     viewModel { MainActivityViewModel(get(), get()) }
     viewModel { MetadataViewModel(get()) }
 }

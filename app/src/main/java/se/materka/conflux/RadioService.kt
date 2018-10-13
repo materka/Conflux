@@ -23,7 +23,7 @@ import androidx.media.MediaBrowserServiceCompat
 import androidx.media.session.MediaButtonReceiver
 import org.koin.android.ext.android.inject
 import se.materka.conflux.db.entity.Station
-import se.materka.conflux.db.repository.StationRepository
+import se.materka.conflux.db.repository.Repository
 import se.materka.conflux.ui.view.MainActivity
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import java.lang.IllegalStateException
@@ -56,7 +56,7 @@ class RadioService : MediaBrowserServiceCompat(), LifecycleOwner {
 
     private val lifecycleDispatcher = ServiceLifecycleDispatcher(this)
 
-    private val stationRepository: StationRepository by inject()
+    private val stationRepository: Repository<Station> by inject()
 
     private var nowPlaying: Station? = null
 
@@ -112,7 +112,7 @@ class RadioService : MediaBrowserServiceCompat(), LifecycleOwner {
         override fun onPlayFromMediaId(mediaId: String?, extras: Bundle?) {
             super.onPlayFromMediaId(mediaId, extras)
             if (mediaId != null) {
-                stationRepository.getStation(mediaId.toLong()).observeOnce(Observer {
+                stationRepository.get(mediaId.toLong()).observeOnce(Observer {
                     play(Uri.parse(it?.url))
                 })
             }
@@ -141,7 +141,7 @@ class RadioService : MediaBrowserServiceCompat(), LifecycleOwner {
 
     override fun onLoadChildren(parentId: String, result: Result<MutableList<MediaBrowserCompat.MediaItem>>) {
         result.detach()
-        stationRepository.getStations().observeOnce(Observer { stations ->
+        stationRepository.get().observeOnce(Observer { stations ->
             val mediaItems = mutableListOf<MediaBrowserCompat.MediaItem>()
             stations?.forEach { station ->
                 val description: MediaDescriptionCompat = MediaDescriptionCompat.Builder()

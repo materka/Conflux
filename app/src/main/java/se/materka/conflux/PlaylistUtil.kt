@@ -2,12 +2,17 @@ package se.materka.conflux
 
 import android.net.Uri
 import android.util.Log
-import kotlinx.coroutines.experimental.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import se.materka.conflux.PlaylistUtil.PlaylistType.*
+import se.materka.conflux.parsers.M3UParser
+import se.materka.conflux.parsers.PLSParser
+import java.io.File
+import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
+
 
 /**
  * Copyright Mattias Karlsson
@@ -27,61 +32,65 @@ import java.io.InputStream
 
 object PlaylistUtil {
 
+    data class Channel(val name: String?, val uri: Uri?)
+
     enum class PlaylistType(val format: String) {
         M3U("m3u"),
         M3U8("m3u8"),
-        PLS("pls")
+        PLS("pls");
+
+        companion object {
+            fun fromUri(uri: String): PlaylistType? {
+                return when {
+                    uri.endsWith(M3U.format) -> M3U
+                    uri.endsWith(M3U8.format) -> M3U8
+                    uri.endsWith(PLS.format) -> PLS
+                    else -> null
+                }
+            }
+        }
     }
 
     private const val HTTP: String = "http"
     private const val HTTPS: String = "https"
 
-    fun getPlaylist(uri: Uri): MutableList<Uri> {
-        val playlist: MutableList<Uri> = mutableListOf()
+    fun getPlaylist(uri: Uri): List<Channel> {
+        val playlist: MutableList<Channel> = mutableListOf()
+        val playlistType: PlaylistType = PlaylistType.fromUri(uri.toString()) ?: return playlist
+        var inputStream: InputStream? = null
 
-        if (!isPlayList(uri)) return playlist
-        val request: Request = Request.Builder()
-                .url(uri.toString())
-                .get()
-                .build()
         var response: Response? = null
         try {
-            response = OkHttpClient().newCall(request).execute()
-            val inputStream: InputStream? = response.body()?.byteStream()
-            inputStream?.use { stream ->
-                stream.apply {
-                    bufferedReader().use { reader ->
-                        reader.readLines().forEach { line ->
-                            line.trim().run {
-                                if (uri.path.endsWith(PlaylistType.PLS.format, true)) {
-                                    if (contains(HTTP, true)) {
-                                        playlist.add(Uri.parse(substring(indexOf(HTTP, 0, true))))
-                                    }
-                                } else if (uri.path.endsWith(PlaylistType.M3U.format, true) || uri.path.endsWith(PlaylistType.M3U8.format, true)) {
-                                    if (isNotEmpty() && this[0] != '#' && this[0] != '<') {
-                                        playlist.add(Uri.parse(this))
-                                    }
-                                }
-
-                                }
-                            }
-                        }
+            if (listOf(HTTP, HTTPS).any { scheme -> scheme == uri.scheme }) {
+                Request.Builder().url(uri.toString()).get().build().also { request ->
+                    response = OkHttpClient().newCall(request).execute()
+                    if (response?.code() == 200) {
+                        inputStream = response?.body()?.byteStream()
                     }
                 }
-
-        } catch (e: IOException) {
-            Log.e(TAG, "Playlist parser failed")
+            } else {
+                inputStream = FileInputStream(File(uri.toString()))
+            }
+            inputStream?.let { stream -> parse(stream, playlistType) }
+                    ?.also { playlist.addAll(it) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Request for playlist failed")
         } finally {
             response?.close()
         }
         return playlist
     }
 
-
-    fun isPlayList(uri: Uri): Boolean {
-        return (arrayOf(HTTP, HTTPS).contains(uri.scheme) &&
-                uri.path.endsWith(PlaylistType.PLS.format, true) ||
-                uri.path.endsWith(PlaylistType.M3U.format, true) ||
-                uri.path.endsWith(PlaylistType.M3U8.format, true))
+    private fun parse(stream: InputStream, type: PlaylistType): List<Channel>? {
+        return when (type) {
+            M3U, M3U8 -> {
+                val result = M3UParser.parse(stream)
+                result.segments.map { Channel(it.title, it.uri) }
+            }
+            PLS -> {
+                val result = PLSParser.parse(stream)
+                result.tracks.map { Channel(it.title, Uri.parse(it.file)) }
+            }
+        }
     }
 }

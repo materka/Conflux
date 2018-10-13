@@ -13,7 +13,6 @@ import org.koin.androidx.viewmodel.ext.android.getViewModel
 import se.materka.conflux.R
 import se.materka.conflux.databinding.FragmentEditBinding
 import se.materka.conflux.db.entity.Station
-import se.materka.conflux.ui.viewmodel.StationViewModel
 
 /**
  * Copyright Mattias Karlsson
@@ -35,10 +34,6 @@ class EditFragment : DialogFragment() {
 
     private lateinit var station: Station
 
-    private val stationViewModel: StationViewModel? by lazy {
-        activity?.getViewModel<StationViewModel>()
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         station = arguments!!.getParcelable(InfoFragment.ARG_STATION)
         val binding: FragmentEditBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.fragment_edit, null, false)
@@ -55,7 +50,6 @@ class EditFragment : DialogFragment() {
             (dialog as AlertDialog).getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 if (isValid(station.url)) {
                     station.name = station.name ?: station.url
-                    stationViewModel?.update(station)
                     dialog.dismiss()
                 } else {
                     dialog.text_url.error = "Invalid URL, please provide a valid URL"

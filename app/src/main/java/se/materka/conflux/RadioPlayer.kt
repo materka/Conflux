@@ -17,7 +17,10 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.util.Util
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import okhttp3.OkHttpClient
 import se.materka.exoplayershoutcastdatasource.ShoutcastMetadata
 import java.io.IOException
@@ -60,7 +63,7 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val listener:
     private var audioSource: MediaSource? = null
     private var audioState: Int = PlaybackStateCompat.STATE_NONE
     private var playOnFocusGain: Boolean = false
-    private val playlist: Stack<Uri> = Stack()
+    private val playlist: Stack<PlaylistUtil.Channel> = Stack()
     private var metadata: ShoutcastMetadata? = null
 
     private val shoutcastDataSource: ShoutcastDataSource by lazy {
@@ -88,7 +91,7 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val listener:
         override fun onPlayerError(error: ExoPlaybackException?) {
             // TODO: Log error
             if (!playlist.isEmpty()) {
-                play(playlist.pop())
+                play(playlist.pop().uri)
                 return
             }
             listener.onError(PlaybackStateCompat.STATE_ERROR, "Could not play provided station")
@@ -175,14 +178,14 @@ class RadioPlayer(mediaBrowser: MediaBrowserServiceCompat, private val listener:
             if (playlist.isEmpty()) {
                 GlobalScope.launch(Dispatchers.Main) {
                     async(Dispatchers.Default) {
-                        PlaylistUtil.getPlaylist(uri).let { list ->
+                        PlaylistUtil.getPlaylist(uri)?.let { list ->
                             if (!list.isEmpty()) {
                                 playlist.addAll(list)
                             }
                         }
                     }.await()
                     if (!playlist.empty()) {
-                        prepare(playlist.pop())
+                        playlist.takeIf { !it.empty() }?.pop()?.uri?.let { prepare(it) }
                     }
                 }
             } else {

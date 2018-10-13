@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import android.support.v4.media.MediaBrowserCompat
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.github.salomonbrys.kotson.fromJson
 import com.google.gson.Gson
@@ -12,7 +13,7 @@ import org.koin.standalone.KoinComponent
 import org.koin.standalone.inject
 import se.materka.conflux.RadioSession
 import se.materka.conflux.db.entity.Station
-import se.materka.conflux.db.repository.StationRepository
+import se.materka.conflux.db.repository.Repository
 
 /**
  * Copyright Mattias Karlsson
@@ -30,7 +31,7 @@ import se.materka.conflux.db.repository.StationRepository
  * limitations under the License.
  */
 
-class MainActivityViewModel(application: Application, private val repository: StationRepository) : AndroidViewModel(application), KoinComponent {
+class MainActivityViewModel(application: Application, private val repository: Repository<Station>) : AndroidViewModel(application), KoinComponent {
     private val radioSession: RadioSession by inject { parametersOf("context" to application.applicationContext) }
 
     val items = MutableLiveData<List<MediaBrowserCompat.MediaItem>>().apply {
@@ -55,15 +56,19 @@ class MainActivityViewModel(application: Application, private val repository: St
         radioSession.play(item)
     }
 
-    fun select(uri: Uri) {
-        radioSession.play(uri)
+    fun select(url: Uri) {
+        radioSession.play(url)
     }
 
-    fun saveUri(uri: Uri, name: String) {
-        repository.create(Gson().fromJson("{ 'name': '$name', 'url': '$uri'}"))
+    fun saveUrl(url: Uri, name: String) {
+        repository.save(Gson().fromJson("{ 'name': '$name', 'url': '$url'}"))
     }
 
     fun togglePlayback() {
         radioSession.toggle()
+    }
+
+    fun urlExists(url: Uri): LiveData<Boolean> {
+        return repository.exists(url.toString())
     }
 }
