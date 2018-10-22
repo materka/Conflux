@@ -20,6 +20,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.menu_action.view.*
@@ -28,6 +29,7 @@ import se.materka.conflux.R
 import se.materka.conflux.ui.StickyItemDecoration
 import se.materka.conflux.ui.adapter.ListAdapter
 import se.materka.conflux.ui.viewmodel.MainActivityViewModel
+import se.materka.conflux.ui.viewmodel.MetadataViewModel
 
 
 /**
@@ -55,6 +57,10 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
         getViewModel<MainActivityViewModel>()
     }
 
+    private val metadataViewModel: MetadataViewModel by lazy {
+        getViewModel<MetadataViewModel>()
+    }
+
     private lateinit var menu: Menu
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,6 +81,16 @@ class MainActivity : AppCompatActivity(), SearchView.OnQueryTextListener,
                 listAdapter.updateDataSet(items)
             }
         })
+
+        metadataViewModel.isPlaying.observe(this, Observer {
+            if (it) {
+                BottomSheetBehavior.from(bottom_sheet).state = BottomSheetBehavior.STATE_COLLAPSED
+            } else {
+                BottomSheetBehavior.from(bottom_sheet).state = BottomSheetBehavior.STATE_HIDDEN
+            }
+        })
+
+        BottomSheetBehavior.from(bottom_sheet).state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     public override fun onResume() {
